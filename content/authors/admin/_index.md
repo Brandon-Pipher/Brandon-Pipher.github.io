@@ -81,11 +81,11 @@ work:
     date_end: ''
     summary: |
       Responsibilities include:
-    - Lead data-driven projects leveraging advanced statistical and machine learning methodologies within the Decennial Statistical Studies Division's Sampling Branch.
-    - Spearhead research and development for the 2030 Post-Enumeration Survey (PES), improving coverage estimation by integrating administrative records with Census data and employing innovative modeling approaches.
-    - Conduct research for the \href{https://www.census.gov/about/adrm/linkage/projects/continuous-count-study.html}{Continuous Count Study}, enhancing intercensal population estimates through linkage of Census products, commercial data, and government administrative records. Applied statistical learning methods including Log-Linear and Latent Class modeling. Presented findings at the \href{https://ww3.aievolution.com/JSMAnnual2024/Events/viewEv?ev=2792}{2024 Joint Statistical Meetings} and the 2024 Federal Committee on Statistical Methodology.
-    - Designed and executed statistical programming for the \href{https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/national-census-coverage-estimates-by-demographic-characteristics.pdf}{2020 Post-Enumeration Survey (PES)}, developing an Inmover probability imputation model and applying advanced feature selection to improve the accuracy of coverage estimates.
-    - Developed and applied graph theory and network-based methods to enhance residence assignment and household inference from administrative data, improving accuracy of person-to-household linkage and residence imputation models.
+      - Lead data-driven projects leveraging advanced statistical and machine learning methodologies within the Decennial Statistical Studies Division's Sampling Branch.
+      - Spearhead research and development for the 2030 Post-Enumeration Survey (PES), improving coverage estimation by integrating administrative records with Census data and employing innovative modeling approaches.
+      - Conduct research for the \href{https://www.census.gov/about/adrm/linkage/projects/continuous-count-study.html}{Continuous Count Study}, enhancing intercensal population estimates through linkage of Census products, commercial data, and government administrative records. Applied statistical learning methods including Log-Linear and Latent Class modeling. Presented findings at the \href{https://ww3.aievolution.com/JSMAnnual2024/Events/viewEv?ev=2792}{2024 Joint Statistical Meetings} and the 2024 Federal Committee on Statistical Methodology.
+      - Designed and executed statistical programming for the \href{https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/national-census-coverage-estimates-by-demographic-characteristics.pdf}{2020 Post-Enumeration Survey (PES)}, developing an Inmover probability imputation model and applying advanced feature selection to improve the accuracy of coverage estimates.
+      - Developed and applied graph theory and network-based methods to enhance residence assignment and household inference from administrative data, improving accuracy of person-to-household linkage and residence imputation models.
 
   - position: Quantitative Analyst
     company_name: Nations Lending
@@ -95,10 +95,10 @@ work:
     date_end: 2021-07-01
     summary: |
       Responsibilities include:
-    - Partnered with Risk Management, Compliance, and Product teams to create automated reports and dashboards, providing insights on Key Performance Indicators (KPIs) and Objectives and Key Results (OKRs) using statistical modeling and data science techniques.
-    - Delivered high-impact analytical summaries to senior leadership, developing flexible reporting solutions to drive strategic decision-making and monitor performance indicators.
-    - Built time series forecasting models using public data to predict quarterly mortgage loan origination volume, optimizing workforce allocation and reducing operational costs.
-    - Applied Natural Language Processing (NLP) to analyze mortgage process documentation, uncovering bottlenecks and reducing closing times through machine learning-based workflow improvements.
+      - Partnered with Risk Management, Compliance, and Product teams to create automated reports and dashboards, providing insights on Key Performance Indicators (KPIs) and Objectives and Key Results (OKRs) using statistical modeling and data science techniques.
+      - Delivered high-impact analytical summaries to senior leadership, developing flexible reporting solutions to drive strategic decision-making and monitor performance indicators.
+      - Built time series forecasting models using public data to predict quarterly mortgage loan origination volume, optimizing workforce allocation and reducing operational costs.
+      - Applied Natural Language Processing (NLP) to analyze mortgage process documentation, uncovering bottlenecks and reducing closing times through machine learning-based workflow improvements.
 
 # Skills
 # Add your own SVG icons to `assets/media/icons/`
