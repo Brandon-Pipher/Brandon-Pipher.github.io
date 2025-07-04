@@ -38,7 +38,7 @@ profiles:
 #  - icon: brands/instagram
 #    url: https://www.instagram.com/
   - icon: brands/github
-    url: https://github.com/bppipher
+    url: https://github.com/Brandon-Pipher/
   - icon: brands/linkedin
     url: https://www.linkedin.com/in/brandonpipher/
 #  - icon: academicons/google-scholar
