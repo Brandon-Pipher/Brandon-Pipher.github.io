@@ -37,6 +37,7 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v5
         with:
+          token: ${{ secrets.PAT_TOKEN }} # <-- This is a fix for perm issue
           commit-message: 'content: import blog posts from `notebooks/` folder'
           title: Hugo Blox Builder - Import latest blog posts
           body: |
