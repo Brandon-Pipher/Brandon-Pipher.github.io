@@ -9,7 +9,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  
+
 jobs:
   convert-notebooks:
     runs-on: ubuntu-latest
@@ -21,11 +21,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.10'
 
       - name: Install Jupyter and nbconvert
-        run: |
-          pip install jupyter nbconvert
+        run: pip install jupyter nbconvert
 
       - name: Convert notebooks to Hugo page bundles
         run: |
@@ -38,11 +37,15 @@ jobs:
             mv "$output_dir/$filename.md" "$output_dir/index.md"
           done
 
-      - name: Commit and create pull request
+      - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          commit-message: Import Jupyter notebooks as blog posts
+          commit-message: Auto-import Jupyter notebooks
           title: Import Jupyter notebooks
           body: |
-            This PR contains new or updated blog posts generated from `.ipynb` files.
+            This PR contains Markdown versions of notebooks.
           branch: auto/notebook-import
+          delete-branch: true
+          draft: false
+          merge: true
+          merge-method: squash
