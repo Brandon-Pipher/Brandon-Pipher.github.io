@@ -37,8 +37,6 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v5
         with:
-          # Fixes pull request and auto merging
-          token: ${{ secrets.PAT_TOKEN }} # <-- This is a fix for perm issue
           commit-message: 'content: import blog posts from `notebooks/` folder'
           title: Hugo Blox Builder - Import latest blog posts
           body: |
@@ -49,9 +47,6 @@ jobs:
           labels: automated-pr, content
           branch: hugoblox-import-posts
           delete-branch: true
-          # Fixes auto merging
-          auto-merge: true  # <--- auto merge if possible
-          merge-method: squash  # or 'merge' or 'rebase' 
       - name: Check outputs
         if: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
