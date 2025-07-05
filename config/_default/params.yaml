@@ -32,7 +32,7 @@ header:
     enable: true
     blox: "navbar"
     fixed_to_top: true
-    show_search: false
+    show_search: true
     show_theme_chooser: false
     logo:
       text: "Brandon P. Pipher"
@@ -41,9 +41,9 @@ header:
 footer:
   blox: minimal
   copyright:
-    notice: '© {year} Brandon P. Pipher. This work is licensed under {license}'
+    notice: '© {year} Brandon P. Pipher. This work is licensed under This work is licensed under the <a href="https://opensource.org/licenses/MIT" rel="noopener noreferrer" target="_blank">MIT License</a>.'
     license:
-      enable: true
+      enable: false
       allow_derivatives: false
       share_alike: false
       allow_commercial: false
@@ -56,6 +56,6 @@ locale:
 # Site features
 features:
   math:
-    enable: false
+    enable: true
   privacy_pack:
     enable: false
