@@ -8,6 +8,7 @@ title: Brandon P. Pipher
 # Website URL
 baseURL: 'https://brandonpipher.com'
 
+
 ############################
 ## LANGUAGE
 ############################
@@ -25,7 +26,8 @@ build:
   writeStats: true
 enableGitInfo: false
 summaryLength: 30
-paginate: 10
+pagination:
+  pagerSize: 10
 enableEmoji: true
 enableRobotsTXT: true
 footnotereturnlinkcontents: <sup>^</sup>
