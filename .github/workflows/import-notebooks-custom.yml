@@ -3,7 +3,8 @@ name: Import Jupyter Notebooks as Blog Posts
 on:
   push:
     branches: [main]
-    #paths: ['notebooks/*.ipynb']
+    paths:
+      - 'notebooks/*.ipynb'
   workflow_dispatch:
 
 permissions:
@@ -23,8 +24,9 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Jupyter and nbconvert
-        run: pip install jupyter nbconvert
+      - name: Install Jupyter tools
+        run: |
+          pip install jupyter nbconvert
 
       - name: Convert notebooks to Hugo page bundles
         run: |
@@ -37,15 +39,10 @@ jobs:
             mv "$output_dir/$filename.md" "$output_dir/index.md"
           done
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
-        with:
-          commit-message: Auto-import Jupyter notebooks
-          title: Import Jupyter notebooks
-          body: |
-            This PR contains Markdown versions of notebooks.
-          branch: auto/notebook-import
-          delete-branch: true
-          draft: false
-          merge: true
-          merge-method: squash
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add content/post/
+          git commit -m "Auto-import notebooks as blog posts" || echo "No changes to commit"
+          git push
