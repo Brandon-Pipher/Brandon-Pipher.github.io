@@ -10,4 +10,5 @@ view: card
 image:
   caption: ''
   filename: ''
+draft: true
 ---
