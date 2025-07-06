@@ -1,8 +1,47 @@
 ---
-title: Blog with Jupyter Notebooks!
-date: '2025-07-06'
-summary: Easily blog from Jupyter notebooks!
+date: 2025-07-05
+title: Example Post Title!
+draft: false
+toc: false 
 ---
+
+# Blog with Jupyter Notebooks!
+
+Create a directory for the blog post somewhere like:
+
+```
+content/post/test-post/
+```
+
+
+Within this directory create an ipynb named:
+``` 
+index.ipynb
+```
+
+
+The first cell of the notebook to have the following content:
+```
+---
+date: 2024-02-02T04:14:54-08:00
+draft: false
+title: Example
+---
+```
+
+You then run the following code, assuming your working directory is your sites home directory:
+
+```
+jupyter nbconvert --to markdown content/post/blog-with-jupyter/index.ipynb
+```
+
+If you want a featured image, then add an image in the same directory named
+
+```
+featured.png
+```
+
+Here is an example of running some python code:
 
 
 ```python
@@ -10,25 +49,19 @@ from IPython.core.display import Image
 Image('https://www.python.org/static/community_logos/python-logo-master-v3-TM-flattened.png')
 ```
 
+
+
+
     
-![png](output_1_0.png)
+![png](index_files/index_6_0.png)
     
+
+
+
 
 ```python
-print("Welcome to Academic!")
+print("Welcome to Academic Blogging!")
 ```
 
-    Welcome to Academic!
-
-## Organize your notebooks
-
-Place the notebooks that you would like to publish in a `notebooks` folder at the root of your website.
-
-## Import the notebooks into your site
-
-```bash
-pipx install academic
-academic import 'notebooks/**.ipynb' content/post/ --verbose
-```
-
-The notebooks will be published to the folder you specify above. In this case, they will be published to your `content/post/` folder.
+    Welcome to Academic Blogging!
+    
