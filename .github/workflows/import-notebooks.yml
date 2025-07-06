@@ -6,7 +6,7 @@ permissions:
   contents: write
   pull-requests: write
 
-# Run workflow when a `.bib` file is added or updated in the `data/` folder
+# Run workflow when a `.ipynb` file is added or updated in the `notebooks/` folder
 on:
   push:
     branches: ['main']
