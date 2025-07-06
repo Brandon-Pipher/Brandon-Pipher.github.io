@@ -1,0 +1,1047 @@
+---
+title: 'Tidy machine learning using Tidymodels: Part I'
+author: Brandon P. Pipher
+date: '2020-06-06'
+slug: []
+categories:
+  - Machine Learning
+  - Data Analysis
+tags:
+  - R
+  - Tidyverse
+  - Tidymodels
+subtitle: 'Practing with Tidymodels on the Ames housing data'
+summary:  'Practing with Tidymodels on the Ames housing data'
+authors: []
+lastmod: '2020-06-06T21:05:32-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: true
+---
+
+
+
+<pre class="r"><code># Libraries
+library(tidyverse)
+library(tidymodels)
+library(skimr)
+library(AmesHousing)</code></pre>
+<pre class="r"><code># Seed for reproducibility
+set.seed(662020)
+
+# Loading data
+ames &lt;-
+  make_ordinal_ames() %&gt;%
+  drop_na()
+
+# Initail split into Train/Valid sets
+ames_split &lt;-
+  ames %&gt;% 
+  initial_split(prop = 4/5)
+
+ames_train &lt;- 
+  ames_split %&gt;%
+  training()
+
+ames_test &lt;-
+  ames_split %&gt;%
+  testing()
+
+# CV Split on Train data for parameter tuning
+ames_train_cvfolds &lt;-
+  ames_train %&gt;%
+  vfold_cv(v = 10,
+           strata = &quot;Sale_Price&quot;)
+
+# Defining the model formula
+# and handling pre-processing
+ames_train_recipe &lt;-
+  ames_train %&gt;%
+  recipe(Sale_Price ~ .) %&gt;%
+#  step_log(all_outcomes(), base = 10) %&gt;%
+#  step_YeoJohnson(all_predictors(), - all_nominal()) %&gt;%
+  step_normalize(all_predictors(), -all_nominal()) %&gt;%
+  step_dummy(all_nominal()) %&gt;%
+  prep()
+
+# Generating the training data
+# as model matrix
+ames_train_baked &lt;-
+  ames_train_recipe %&gt;%
+  juice()
+
+# Generating the testing data
+# as model matrix
+ames_test_baked &lt;- 
+  ames_train_recipe %&gt;%
+  bake(ames_test)</code></pre>
+<pre class="r"><code>ames_train %&gt;% 
+  skimr::skim()</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-5">Table 1: </span>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">Piped data</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">2344</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">81</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">factor</td>
+<td align="left">46</td>
+</tr>
+<tr class="odd">
+<td align="left">numeric</td>
+<td align="left">35</td>
+</tr>
+<tr class="even">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">MS_SubClass</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">16</td>
+<td align="left">One: 867, Two: 466, One: 224, One: 148</td>
+</tr>
+<tr class="even">
+<td align="left">MS_Zoning</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">7</td>
+<td align="left">Res: 1820, Res: 370, Flo: 111, Res: 22</td>
+</tr>
+<tr class="odd">
+<td align="left">Street</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Pav: 2337, Grv: 7</td>
+</tr>
+<tr class="even">
+<td align="left">Alley</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">3</td>
+<td align="left">No_: 2185, Gra: 100, Pav: 59</td>
+</tr>
+<tr class="odd">
+<td align="left">Lot_Shape</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">4</td>
+<td align="left">Reg: 1477, Sli: 788, Mod: 65, Irr: 14</td>
+</tr>
+<tr class="even">
+<td align="left">Land_Contour</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">4</td>
+<td align="left">Lvl: 2104, HLS: 96, Bnk: 93, Low: 51</td>
+</tr>
+<tr class="odd">
+<td align="left">Utilities</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">2</td>
+<td align="left">All: 2343, NoS: 1, ELO: 0, NoS: 0</td>
+</tr>
+<tr class="even">
+<td align="left">Lot_Config</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">5</td>
+<td align="left">Ins: 1703, Cor: 410, Cul: 145, FR2: 74</td>
+</tr>
+<tr class="odd">
+<td align="left">Land_Slope</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">3</td>
+<td align="left">Gtl: 2232, Mod: 98, Sev: 14</td>
+</tr>
+<tr class="even">
+<td align="left">Neighborhood</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">28</td>
+<td align="left">Nor: 366, Col: 214, Old: 196, Edw: 153</td>
+</tr>
+<tr class="odd">
+<td align="left">Condition_1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">9</td>
+<td align="left">Nor: 2011, Fee: 133, Art: 76, RRA: 42</td>
+</tr>
+<tr class="even">
+<td align="left">Condition_2</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">7</td>
+<td align="left">Nor: 2319, Fee: 12, Art: 5, Pos: 3</td>
+</tr>
+<tr class="odd">
+<td align="left">Bldg_Type</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">5</td>
+<td align="left">One: 1942, Twn: 183, Dup: 90, Twn: 75</td>
+</tr>
+<tr class="even">
+<td align="left">House_Style</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">8</td>
+<td align="left">One: 1185, Two: 700, One: 247, SLv: 104</td>
+</tr>
+<tr class="odd">
+<td align="left">Overall_Qual</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">10</td>
+<td align="left">Ave: 652, Abo: 576, Goo: 494, Ver: 284</td>
+</tr>
+<tr class="even">
+<td align="left">Overall_Cond</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">9</td>
+<td align="left">Ave: 1329, Abo: 430, Goo: 301, Ver: 120</td>
+</tr>
+<tr class="odd">
+<td align="left">Roof_Style</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">6</td>
+<td align="left">Gab: 1858, Hip: 442, Fla: 17, Gam: 16</td>
+</tr>
+<tr class="even">
+<td align="left">Roof_Matl</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">8</td>
+<td align="left">Com: 2308, Tar: 19, WdS: 7, WdS: 6</td>
+</tr>
+<tr class="odd">
+<td align="left">Exterior_1st</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">16</td>
+<td align="left">Vin: 842, HdB: 352, Met: 350, Wd : 327</td>
+</tr>
+<tr class="even">
+<td align="left">Exterior_2nd</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">17</td>
+<td align="left">Vin: 830, Met: 347, HdB: 325, Wd : 317</td>
+</tr>
+<tr class="odd">
+<td align="left">Mas_Vnr_Type</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">5</td>
+<td align="left">Non: 1414, Brk: 703, Sto: 207, Brk: 19</td>
+</tr>
+<tr class="even">
+<td align="left">Exter_Qual</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">4</td>
+<td align="left">Typ: 1422, Goo: 806, Exc: 86, Fai: 30</td>
+</tr>
+<tr class="odd">
+<td align="left">Exter_Cond</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">Typ: 2038, Goo: 244, Fai: 51, Exc: 9</td>
+</tr>
+<tr class="even">
+<td align="left">Foundation</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">6</td>
+<td align="left">PCo: 1063, CBl: 985, Brk: 249, Sla: 38</td>
+</tr>
+<tr class="odd">
+<td align="left">Bsmt_Qual</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">6</td>
+<td align="left">Typ: 1013, Goo: 979, Exc: 215, Fai: 74</td>
+</tr>
+<tr class="even">
+<td align="left">Bsmt_Cond</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">6</td>
+<td align="left">Typ: 2096, Goo: 96, Fai: 82, No_: 62</td>
+</tr>
+<tr class="odd">
+<td align="left">Bsmt_Exposure</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">No: 1522, Av: 332, Gd: 235, Mn: 190</td>
+</tr>
+<tr class="even">
+<td align="left">BsmtFin_Type_1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">7</td>
+<td align="left">GLQ: 691, Unf: 684, ALQ: 342, Rec: 228</td>
+</tr>
+<tr class="odd">
+<td align="left">BsmtFin_Type_2</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">7</td>
+<td align="left">Unf: 1997, Rec: 93, LwQ: 68, No_: 62</td>
+</tr>
+<tr class="even">
+<td align="left">Heating</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">5</td>
+<td align="left">Gas: 2308, Gas: 21, Gra: 9, Wal: 5</td>
+</tr>
+<tr class="odd">
+<td align="left">Heating_QC</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">Exc: 1227, Typ: 672, Goo: 370, Fai: 72</td>
+</tr>
+<tr class="even">
+<td align="left">Central_Air</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">Y: 2186, N: 158</td>
+</tr>
+<tr class="odd">
+<td align="left">Electrical</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">SBr: 2140, Fus: 152, Fus: 44, Fus: 7</td>
+</tr>
+<tr class="even">
+<td align="left">Kitchen_Qual</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">Typ: 1191, Goo: 924, Exc: 175, Fai: 53</td>
+</tr>
+<tr class="odd">
+<td align="left">Functional</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">8</td>
+<td align="left">Typ: 2180, Min: 57, Min: 50, Mod: 29</td>
+</tr>
+<tr class="even">
+<td align="left">Fireplace_Qu</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">6</td>
+<td align="left">No_: 1149, Goo: 597, Typ: 471, Fai: 56</td>
+</tr>
+<tr class="odd">
+<td align="left">Garage_Type</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">7</td>
+<td align="left">Att: 1376, Det: 619, Bui: 159, No_: 132</td>
+</tr>
+<tr class="even">
+<td align="left">Garage_Finish</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">4</td>
+<td align="left">Unf: 968, RFn: 652, Fin: 591, No_: 133</td>
+</tr>
+<tr class="odd">
+<td align="left">Garage_Qual</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">6</td>
+<td align="left">Typ: 2082, No_: 133, Fai: 105, Goo: 21</td>
+</tr>
+<tr class="even">
+<td align="left">Garage_Cond</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">6</td>
+<td align="left">Typ: 2126, No_: 133, Fai: 61, Goo: 12</td>
+</tr>
+<tr class="odd">
+<td align="left">Paved_Drive</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">3</td>
+<td align="left">Pav: 2123, Dir: 179, Par: 42</td>
+</tr>
+<tr class="even">
+<td align="left">Pool_QC</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">No_: 2333, Typ: 3, Goo: 3, Exc: 3</td>
+</tr>
+<tr class="odd">
+<td align="left">Fence</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">TRUE</td>
+<td align="right">5</td>
+<td align="left">No_: 1888, Min: 259, Goo: 93, Goo: 92</td>
+</tr>
+<tr class="even">
+<td align="left">Misc_Feature</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">6</td>
+<td align="left">Non: 2258, She: 76, Gar: 4, Oth: 4</td>
+</tr>
+<tr class="odd">
+<td align="left">Sale_Type</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">10</td>
+<td align="left">WD : 2022, New: 196, COD: 70, Con: 22</td>
+</tr>
+<tr class="even">
+<td align="left">Sale_Condition</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">6</td>
+<td align="left">Nor: 1928, Par: 201, Abn: 150, Fam: 39</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Lot_Frontage</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">57.99</td>
+<td align="right">33.65</td>
+<td align="right">0.00</td>
+<td align="right">43.00</td>
+<td align="right">63.00</td>
+<td align="right">79.00</td>
+<td align="right">313.00</td>
+<td align="left">▇▇▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Lot_Area</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">10200.95</td>
+<td align="right">7908.64</td>
+<td align="right">1300.00</td>
+<td align="right">7497.00</td>
+<td align="right">9512.50</td>
+<td align="right">11601.50</td>
+<td align="right">215245.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Year_Built</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1971.59</td>
+<td align="right">30.33</td>
+<td align="right">1872.00</td>
+<td align="right">1954.00</td>
+<td align="right">1973.00</td>
+<td align="right">2001.00</td>
+<td align="right">2010.00</td>
+<td align="left">▁▂▃▆▇</td>
+</tr>
+<tr class="even">
+<td align="left">Year_Remod_Add</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1984.55</td>
+<td align="right">20.83</td>
+<td align="right">1950.00</td>
+<td align="right">1965.00</td>
+<td align="right">1993.00</td>
+<td align="right">2004.00</td>
+<td align="right">2010.00</td>
+<td align="left">▅▂▂▃▇</td>
+</tr>
+<tr class="odd">
+<td align="left">Mas_Vnr_Area</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">100.40</td>
+<td align="right">175.63</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">162.00</td>
+<td align="right">1600.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">BsmtFin_SF_1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">4.18</td>
+<td align="right">2.23</td>
+<td align="right">0.00</td>
+<td align="right">3.00</td>
+<td align="right">3.00</td>
+<td align="right">7.00</td>
+<td align="right">7.00</td>
+<td align="left">▃▂▇▁▇</td>
+</tr>
+<tr class="odd">
+<td align="left">BsmtFin_SF_2</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">51.23</td>
+<td align="right">173.11</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">1526.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Bsmt_Unf_SF</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">558.35</td>
+<td align="right">437.60</td>
+<td align="right">0.00</td>
+<td align="right">218.75</td>
+<td align="right">461.00</td>
+<td align="right">810.00</td>
+<td align="right">2062.00</td>
+<td align="left">▇▆▂▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Total_Bsmt_SF</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1052.92</td>
+<td align="right">445.11</td>
+<td align="right">0.00</td>
+<td align="right">792.75</td>
+<td align="right">990.00</td>
+<td align="right">1302.50</td>
+<td align="right">6110.00</td>
+<td align="left">▇▃▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">First_Flr_SF</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1163.12</td>
+<td align="right">397.39</td>
+<td align="right">334.00</td>
+<td align="right">882.00</td>
+<td align="right">1088.00</td>
+<td align="right">1388.50</td>
+<td align="right">5095.00</td>
+<td align="left">▇▃▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Second_Flr_SF</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">336.89</td>
+<td align="right">430.37</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">711.25</td>
+<td align="right">2065.00</td>
+<td align="left">▇▃▂▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Low_Qual_Fin_SF</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">5.02</td>
+<td align="right">48.67</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">1064.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Gr_Liv_Area</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1505.02</td>
+<td align="right">510.16</td>
+<td align="right">334.00</td>
+<td align="right">1133.75</td>
+<td align="right">1445.50</td>
+<td align="right">1744.50</td>
+<td align="right">5642.00</td>
+<td align="left">▇▇▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Bsmt_Full_Bath</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.44</td>
+<td align="right">0.53</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">1.00</td>
+<td align="right">3.00</td>
+<td align="left">▇▆▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Bsmt_Half_Bath</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.06</td>
+<td align="right">0.23</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">2.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Full_Bath</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1.57</td>
+<td align="right">0.56</td>
+<td align="right">0.00</td>
+<td align="right">1.00</td>
+<td align="right">2.00</td>
+<td align="right">2.00</td>
+<td align="right">4.00</td>
+<td align="left">▁▇▇▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Half_Bath</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.38</td>
+<td align="right">0.50</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">1.00</td>
+<td align="right">2.00</td>
+<td align="left">▇▁▅▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Bedroom_AbvGr</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2.85</td>
+<td align="right">0.83</td>
+<td align="right">0.00</td>
+<td align="right">2.00</td>
+<td align="right">3.00</td>
+<td align="right">3.00</td>
+<td align="right">8.00</td>
+<td align="left">▁▇▂▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Kitchen_AbvGr</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1.05</td>
+<td align="right">0.22</td>
+<td align="right">0.00</td>
+<td align="right">1.00</td>
+<td align="right">1.00</td>
+<td align="right">1.00</td>
+<td align="right">3.00</td>
+<td align="left">▁▇▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">TotRms_AbvGrd</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">6.44</td>
+<td align="right">1.60</td>
+<td align="right">2.00</td>
+<td align="right">5.00</td>
+<td align="right">6.00</td>
+<td align="right">7.00</td>
+<td align="right">15.00</td>
+<td align="left">▁▇▂▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Fireplaces</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.60</td>
+<td align="right">0.65</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">1.00</td>
+<td align="right">1.00</td>
+<td align="right">4.00</td>
+<td align="left">▇▇▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Garage_Cars</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1.77</td>
+<td align="right">0.76</td>
+<td align="right">0.00</td>
+<td align="right">1.00</td>
+<td align="right">2.00</td>
+<td align="right">2.00</td>
+<td align="right">5.00</td>
+<td align="left">▅▇▂▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Garage_Area</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">473.34</td>
+<td align="right">217.61</td>
+<td align="right">0.00</td>
+<td align="right">323.50</td>
+<td align="right">480.00</td>
+<td align="right">576.00</td>
+<td align="right">1488.00</td>
+<td align="left">▃▇▂▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Wood_Deck_SF</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">92.66</td>
+<td align="right">124.59</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">168.00</td>
+<td align="right">1424.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Open_Porch_SF</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">48.59</td>
+<td align="right">68.86</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">28.00</td>
+<td align="right">72.00</td>
+<td align="right">742.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Enclosed_Porch</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">22.78</td>
+<td align="right">63.70</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">1012.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Three_season_porch</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">3.04</td>
+<td align="right">27.22</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">508.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Screen_Porch</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">16.14</td>
+<td align="right">56.60</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">576.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Pool_Area</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2.27</td>
+<td align="right">35.23</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">800.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Misc_Val</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">49.70</td>
+<td align="right">534.48</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">0.00</td>
+<td align="right">17000.00</td>
+<td align="left">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Mo_Sold</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">6.27</td>
+<td align="right">2.73</td>
+<td align="right">1.00</td>
+<td align="right">4.00</td>
+<td align="right">6.00</td>
+<td align="right">8.00</td>
+<td align="right">12.00</td>
+<td align="left">▃▆▇▃▃</td>
+</tr>
+<tr class="even">
+<td align="left">Year_Sold</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">2007.80</td>
+<td align="right">1.31</td>
+<td align="right">2006.00</td>
+<td align="right">2007.00</td>
+<td align="right">2008.00</td>
+<td align="right">2009.00</td>
+<td align="right">2010.00</td>
+<td align="left">▇▇▇▇▃</td>
+</tr>
+<tr class="odd">
+<td align="left">Sale_Price</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">181237.77</td>
+<td align="right">80193.77</td>
+<td align="right">12789.00</td>
+<td align="right">129900.00</td>
+<td align="right">161000.00</td>
+<td align="right">214000.00</td>
+<td align="right">755000.00</td>
+<td align="left">▇▇▁▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">Longitude</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">-93.64</td>
+<td align="right">0.03</td>
+<td align="right">-93.69</td>
+<td align="right">-93.66</td>
+<td align="right">-93.64</td>
+<td align="right">-93.62</td>
+<td align="right">-93.58</td>
+<td align="left">▅▅▇▆▁</td>
+</tr>
+<tr class="odd">
+<td align="left">Latitude</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">42.03</td>
+<td align="right">0.02</td>
+<td align="right">41.99</td>
+<td align="right">42.02</td>
+<td align="right">42.03</td>
+<td align="right">42.05</td>
+<td align="right">42.06</td>
+<td align="left">▂▂▇▇▇</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>ames_train %&gt;%
+  keep(is.numeric) %&gt;%
+  cor() %&gt;%
+  corrplot::corrplot()</code></pre>
+<p><img src="/post/2020-06-06-tidy-machine-learning-using-tidymodels-part-i/index.en_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>ames_train %&gt;%
+  keep(is.numeric) %&gt;%
+  corrgram::corrgram()</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;seriation&#39;:
+##   method         from 
+##   reorder.hclust gclus</code></pre>
+<p><img src="/post/2020-06-06-tidy-machine-learning-using-tidymodels-part-i/index.en_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<pre class="r"><code># Linear Regression
+lm_fit &lt;- 
+  linear_reg() %&gt;%
+  set_mode(&quot;regression&quot;) %&gt;%
+  set_engine(&quot;lm&quot;) %&gt;%
+  fit(Sale_Price ~ . ,
+      ames_train_baked)
+
+lm_fit$fit %&gt;% 
+    glance()</code></pre>
+<pre><code>## # A tibble: 1 x 11
+##   r.squared adj.r.squared  sigma statistic p.value    df  logLik    AIC    BIC      deviance df.residual
+##       &lt;dbl&gt;         &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;         &lt;dbl&gt;       &lt;int&gt;
+## 1     0.944         0.936 20307.      117.       0   295 -26418. 53428. 55132. 844933941149.        2049</code></pre>
+<pre class="r"><code>lm_fit %&gt;%
+  tidy()</code></pre>
+<pre><code>## # A tibble: 295 x 5
+##    term             estimate std.error statistic  p.value
+##    &lt;chr&gt;               &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+##  1 (Intercept)    -1077454.     76249.   -14.1   2.48e-43
+##  2 Lot_Frontage         98.6      545.     0.181 8.56e- 1
+##  3 Lot_Area           5194.       683.     7.60  4.44e-14
+##  4 Year_Built        11581.      1763.     6.57  6.37e-11
+##  5 Year_Remod_Add     1326.       806.     1.65  1.00e- 1
+##  6 Mas_Vnr_Area       3559.       745.     4.78  1.88e- 6
+##  7 BsmtFin_SF_1      16044.     14987.     1.07  2.85e- 1
+##  8 BsmtFin_SF_2      -1038.       867.    -1.20  2.31e- 1
+##  9 Bsmt_Unf_SF       -9909.       927.   -10.7   5.37e-26
+## 10 Total_Bsmt_SF     18527.      1471.    12.6   4.26e-35
+## # ... with 285 more rows</code></pre>
+<pre class="r"><code>lm_fit %&gt;%
+  predict(ames_test_baked) %&gt;%
+  bind_cols(ames_test_baked %&gt;% select(Sale_Price)) %&gt;%
+#  mutate(.pred = 10^(.pred)) %&gt;%
+  metrics(truth = Sale_Price,
+          estimate = .pred)</code></pre>
+<pre><code>## Warning in predict.lm(object = object$fit, newdata = new_data, type = &quot;response&quot;): prediction from a rank-deficient fit may be misleading</code></pre>
+<pre><code>## # A tibble: 3 x 3
+##   .metric .estimator .estimate
+##   &lt;chr&gt;   &lt;chr&gt;          &lt;dbl&gt;
+## 1 rmse    standard   25361.   
+## 2 rsq     standard       0.897
+## 3 mae     standard   15618.</code></pre>
+<pre class="r"><code># dat = ames_train %&gt;% select(starts_with(&quot;Sale_Price&quot;)|is.factor)</code></pre>
+<pre class="r"><code># Random Forest</code></pre>
+<pre class="r"><code># randomforest_model &lt;- 
+#   rand_forest() %&gt;%
+#   set_engine(&quot;randomForest&quot;) %&gt;%
+#   set_mode(&quot;regression&quot;)
+# 
+# randomforest_fit &lt;- 
+#   randomforest_model %&gt;%
+#   fit(Sale_Price ~ . , data = ames)</code></pre>

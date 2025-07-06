@@ -1,0 +1,207 @@
+---
+title: 'Tidy machine learning using Tidymodels: Part I'
+author: Brandon P. Pipher
+date: '2020-06-06'
+slug: []
+categories:
+  - Machine Learning
+  - Data Analysis
+tags:
+  - R
+  - Tidyverse
+  - Tidymodels
+subtitle: 'Practing with Tidymodels on the Ames housing data'
+summary:  'Practing with Tidymodels on the Ames housing data'
+authors: []
+lastmod: '2020-06-06T21:05:32-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: true
+---
+
+```{r, include = FALSE}
+# This fixes a scrollbar not appearing for a better overall appearance
+options(width=300)
+```
+
+```{r, warning = FALSE, message = FALSE, include = FALSE}
+library(tidyverse)
+library(tidymodels)
+library(AmesHousing)
+```
+
+```{r, warning = FALSE, message = FALSE, eval = FALSE}
+# Libraries
+library(tidyverse)
+library(tidymodels)
+library(skimr)
+library(AmesHousing)
+```
+
+
+```{r, warning = FALSE, message = FALSE}
+# Seed for reproducibility
+set.seed(662020)
+
+# Loading data
+ames <-
+  make_ordinal_ames() %>%
+  drop_na()
+
+# Initail split into Train/Valid sets
+ames_split <-
+  ames %>% 
+  initial_split(prop = 4/5)
+
+ames_train <- 
+  ames_split %>%
+  training()
+
+ames_test <-
+  ames_split %>%
+  testing()
+
+# CV Split on Train data for parameter tuning
+ames_train_cvfolds <-
+  ames_train %>%
+  vfold_cv(v = 10,
+           strata = "Sale_Price")
+
+# Defining the model formula
+# and handling pre-processing
+ames_train_recipe <-
+  ames_train %>%
+  recipe(Sale_Price ~ .) %>%
+#  step_log(all_outcomes(), base = 10) %>%
+#  step_YeoJohnson(all_predictors(), - all_nominal()) %>%
+  step_normalize(all_predictors(), -all_nominal()) %>%
+  step_dummy(all_nominal()) %>%
+  prep()
+
+# Generating the training data
+# as model matrix
+ames_train_baked <-
+  ames_train_recipe %>%
+  juice()
+
+# Generating the testing data
+# as model matrix
+ames_test_baked <- 
+  ames_train_recipe %>%
+  bake(ames_test)
+```
+
+```{r}
+ames_train %>% 
+  skimr::skim()
+
+ames_train %>%
+  keep(is.numeric) %>%
+  cor() %>%
+  corrplot::corrplot()
+
+ames_train %>%
+  keep(is.numeric) %>%
+  corrgram::corrgram()
+```
+
+```{r}
+# Linear Regression
+lm_fit <- 
+  linear_reg() %>%
+  set_mode("regression") %>%
+  set_engine("lm") %>%
+  fit(Sale_Price ~ . ,
+      ames_train_baked)
+
+lm_fit$fit %>% 
+    glance()
+
+lm_fit %>%
+  tidy()
+
+lm_fit %>%
+  predict(ames_test_baked) %>%
+  bind_cols(ames_test_baked %>% select(Sale_Price)) %>%
+#  mutate(.pred = 10^(.pred)) %>%
+  metrics(truth = Sale_Price,
+          estimate = .pred)
+
+# dat = ames_train %>% select(starts_with("Sale_Price")|is.factor)
+```
+
+```{r}
+# Random Forest
+```
+
+```{r, include = FALSE}
+# lm_fit %>%
+#     tidy(conf.int = TRUE,
+#          conf.level = 0.95)
+# # Trim
+# 
+# lm_fit %>%
+#     tidy() %>%
+#     arrange(desc(p.value))
+# 
+# lm_fit %>%
+#   tidy() %>%
+#   arrange(desc(p.value)) %>%
+#   filter(p.value <= 0.05)
+
+# 
+# lm_fit_signifvars <-
+#   lm_fit %>%
+#   tidy() %>%
+#   arrange(desc(p.value)) %>%
+#   filter(p.value <= 0.05) %>%
+#   filter(term != '(Intercept)') %>%
+#   select(term) %>%
+#   as_vector()
+# 
+# lm_trimmedfit_dat <-
+#   ames_train_baked[c(lm_fit_signifvars,"Sale_Price")]
+# 
+# lm_trimmedfit <- 
+#   linear_reg() %>%
+#   set_mode("regression") %>%
+#   set_engine("lm") %>%
+#   fit(Sale_Price ~ . ,
+#       lm_trimmedfit_dat)
+# 
+# lm_trimmedfit$fit %>%
+#   glance()
+# 
+# lm_trimmedfit %>%
+#   tidy()
+# 
+# lm_trimmedfit %>%
+#     predict(ames_test_baked) %>%
+#     bind_cols(ames_test_baked) %>%
+#     metrics(truth = Sale_Price,
+#             estimate = .pred)
+#
+# ames %>%
+#     keep(is.numeric) %>%
+#     gather() %>%
+#     ggplot(aes(x = value, y = stat(density))) +
+#     geom_histogram(fill = "blue", color = "black", alpha = 0.7, bins = 20) +
+#     geom_density(size = 1, color = 'red') +
+#     ggthemes::theme_stata() +
+#     facet_wrap( ~ key, scales = "free")
+```
+
+```{r}
+# randomforest_model <- 
+#   rand_forest() %>%
+#   set_engine("randomForest") %>%
+#   set_mode("regression")
+# 
+# randomforest_fit <- 
+#   randomforest_model %>%
+#   fit(Sale_Price ~ . , data = ames)
+```

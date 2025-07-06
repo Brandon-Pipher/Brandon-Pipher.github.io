@@ -1,0 +1,612 @@
+---
+title: Data Analysis on NHTSA Recall Campaigns
+author: Brandon P. Pipher
+date: '2020-07-22'
+slug: []
+categories:
+  - Data Analysis
+  - Data Wrangling
+  - Data Visualization
+tags:
+  - Time Series
+subtitle: 'Dealer Tire Data Scientist Technical Assessment'
+summary:  'Dealer Tire Data Scientist Technical Assessment'
+authors: []
+lastmod: '2020-07-22T11:53:56-04:00'
+featured: no
+image:
+  caption: '(Stonogobiops yasha and Ricordea yuma)'
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: false
+---
+
+# Preface
+
+Below will be the details on a Technical Assessment I had completed for Dealer Tire.  
+
+It was given with a 48 hour window to complete it.  I had spent a few hours examining and understanding the data set and then trying to determine what insights could be of value.
+
+# Assessment
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(magrittr)
+library(skimr)
+library(lubridate)
+library(scales)
+```
+
+# DATA SCIENCE INTERVIEW EXERCISE
+
+## INTRODUCTION
+
+Auto manufacturers that determine a vehicle has a safety defect will conduct a recall campaign. During a recall all
+vehicle owners will be notified there is a problem and are asked to contact their auto dealership to schedule vehicle
+service to correct or resolve the safety concern.
+
+When recalls affect a large number of vehicles, day-to-day business at the dealerships can be disrupted causing a drop in
+new vehicle sales, part sales or tire replacements. Understanding the frequency and size of recalls is important for any
+company working in the automotive industry.
+
+The National Highway Traffic Safety Administration (NHTSA) is a federal agency that requires auto manufacturers to
+notify the public when a significant safety concern is identified. The information is available in data tables stored on the
+website for NHTSA’s Office of Defects Investigation.
+
+## DATA
+
+Data can be downloaded from the NHTSA web site: http://www-odi.nhtsa.dot.gov/downloads/flatfiles.cfm
+The specific files needed for this analysis will be the Recall files:
+
+    •    FLAT_RCL.zip — This file contains all NHTSA safety-related defect and compliance recall campaigns since 1967.
+    •    RCL.txt — This file provides a list of the fields in the zipped file along with their data type and a brief description.
+
+## EXERCISE
+
+Develop a repeatable process: retrieve recall data, subset to focus on vehicle and tire manufacturers relevant to Dealer
+Tire, clean data if necessary, then write an analysis that interprets patterns or trends you observe. You are encouraged
+to use the R or Python programming languages but are welcome to use any languages or tools you prefer.
+
+Focus on the number of campaigns and the number of vehicles affected by specific recall campaigns. Summarize trends
+for each manufacturer. If you notice other patterns or useful insights, please include those in your summary as well.
+
+## RELEVANT VEHICLE MANUFACTURERS
+    •    BMW                  •    NISSAN                 •    INFINITI             •   VOLVO                •    TOYOTA
+    •    MINI                 •    AUDI                   •    KIA                  •   HONDA                •    MOPAR
+    •    MERCEDES             •    VOLKSWAGEN             •    MAZDA                •   JAGUAR               •    SUBARU
+    •    LEXUS                •    HYUNDAI                •    LAND ROVER           •   ACURA                •    PORSCHE
+## SUBMITTING AND PRESENTING RESULTS
+Submit a summary of your findings as well as the code and collateral files you use to complete your work.
+
+Use tables, charts and graphs to illustrate your observations.
+
+You will present and discuss your findings during a 45 min panel interview with multiple interviewers.
+
+
+## Analysis 
+
+```{r}
+vehicle_mnfctr <-
+  c(
+    "BMW",
+    "MINI",
+    "MERCEDES",
+    "LEXUS",
+    "NISSAN",
+    "AUDI",
+    "VOLKSWAGEN",
+    "HYUNDAI",
+    "INFINITI",
+    "KIA",
+    "MAZDA",
+    "LAND ROVER",
+    "VOLVO",
+    "HONDA",
+    "JAGUAR",
+    "ACURA",
+    "TOYOTA",
+    "MOPAR",
+    "SUBARU",
+    "PORSCHE"
+  )
+
+recalls_varnames <-
+  c(
+    "RECORD_ID",
+    "CAMPNO",
+    "MAKETXT",
+    "MODELTXT",
+    "YEARTXT",
+    "MFGCAMPNO",
+    "COMPNAME",
+    "MFGNAME",
+    "BGMAN",
+    "ENDMAN",
+    "RCLTYPECD",
+    "POTAFF",
+    "ODATE",
+    "INFLUENCED_BY",
+    "MFGTXT",
+    "RCDATE",
+    "DATEA",
+    "RPNO",
+    "FMVSS",
+    "DESC_DEFECT",
+    "CONEQUENCE_DEFECT",
+    "CORRECTIVE_ACTION",
+    "NOTES",
+    "RCL_CMPT_ID",
+    "MFR_COMP_NAME",
+    "MFR_COMP_DESC",
+    "MFR_COMP_PTNO"
+  )
+
+recalls_dataset <-
+  read_tsv(
+    "FLAT_RCL.txt",
+    col_names = recalls_varnames,
+    col_types = cols(.default = "c")
+  )
+```
+
+The following section of mutations is mostly a relic of my exploratory data analysis.
+
+I initially read every variable in as a character string to preserve all possible information.  This gave me the ability to parse through each variable to better understand the data set.  Once I felt I had a firmer understanding of what I was looking at I began settling on coding the individual variables and utilizing `skimr` to gain greater structural insights as I went along.
+
+
+```{r}
+#  un-optimized for presentation of process
+#  unnecessarily re-code variables to only be deleted
+recalls <-
+  recalls_dataset %>%
+  # Select only parts by relevant vehicle manufacturers
+  filter(MAKETXT %in% vehicle_mnfctr) %>%
+  
+  # Date Conversion 
+  mutate(BGMAN = lubridate::as_date(BGMAN)) %>%         #  9  # Some dates are incorrectly converted
+  mutate(ENDMAN = lubridate::as_date(ENDMAN)) %>%       # 10  # Some dates are incorrectly converted
+  mutate(ODATE = lubridate::as_date(ODATE)) %>%         # 13
+  mutate(RCDATE = lubridate::as_date(RCDATE)) %>%       # 16
+  mutate(DATEA = lubridate::as_date(DATEA)) %>%         # 17  # Only complete date entry
+  
+  # Factor Conversion
+  mutate(CAMPNO = as_factor(CAMPNO)) %>%                #  2
+  mutate(MAKETXT = as_factor(MAKETXT)) %>%              #  3
+  mutate(MODELTXT = as_factor(MODELTXT)) %>%            #  4
+  mutate(COMPNAME = as_factor(COMPNAME)) %>%            #  5
+  mutate(MFGCAMPNO = as_factor(MFGCAMPNO)) %>%          #  6
+  mutate(COMPNAME = as_factor(COMPNAME)) %>%            #  7
+  mutate(MFGNAME = as_factor(MFGNAME)) %>%              #  8
+  mutate(RCLTYPECD = as_factor(RCLTYPECD)) %>%          # 11  # UNKNOWN LEVELS
+  mutate(INFLUENCED_BY = as_factor(INFLUENCED_BY)) %>%  # 14
+  mutate(MFGTXT = as_factor(MFGTXT)) %>%                # 15
+  mutate(MFR_COMP_NAME = as_factor(MFR_COMP_NAME)) %>%  # 25
+  
+  # Numeric Conversion
+  mutate(YEARTXT = as.numeric(YEARTXT)) %>%             #  5
+  mutate(YEARTXT = na_if(YEARTXT, 9999)) %>%
+  mutate(POTAFF = as.numeric(POTAFF))                   # 12
+```
+
+With `skimr` we can see that initially some of the date-formatted variables were parsed incorrectly by `as_date`.  Since those date formats had a low level of completeness, and seemed outside the scope of the exercise, I opted to just ignore them in doing the visualizations and trend analysis.  It's also worth noting as I moved along I drew a lot of insight out of `top_counts` and by also utilizing `table() %>% sort(TRUE) %>% head()` on each variable when still formatted as a string to see their frequencies. 
+
+```{r}
+recalls %>% skimr::skim()
+```
+
+At this point I sought to get a general overview on the relationship between the number of Recall Campaigns, Part Manufacturer, Vehicle Manufacturer, and Car Model as relevant to Dealer Tire.
+
+```{r}
+recalls$MAKETXT %>%
+  as.data.frame() %>%
+  # Ordering by count
+  ggplot(aes(forcats::fct_infreq(.))) +
+  geom_bar(fill = 'blue', alpha = 0.7) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Total Number of Recalls by Car Manufacturer") +
+  xlab("Car Manufacturer") +
+  ylab("Total Recall Campaigns") +
+  scale_y_continuous(n.breaks = 15)
+```
+
+Here we can see BMW clearly takes the lead in terms of Total Recall Campaigns.  Honda, Toyota, and Volvo form another group all fighting for second, with all other manufacturers trailing downwards towards zero.
+
+```{r}
+recalls$MFGTXT %>%
+  as.data.frame() %>%
+  # Ordering by count
+  ggplot(aes(forcats::fct_infreq(.))) +
+  geom_bar(fill = 'blue', alpha = 0.7) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Total Number of Recalls by Part Manufacturer") +
+  xlab("Part Manufacturer") + 
+  ylab("Total Recall Campaigns") +
+  scale_y_continuous(n.breaks = 10)
+```
+
+A similar observation can be made when considering Part Manufacturers versus Vehicle Manufacturers.  BMW leads in Total Recall Campaigns with Toyota and Honda just behind.
+
+```{r}
+recalls$MODELTXT %>%
+  table() %>%
+  sort(TRUE) %>%
+  as.data.frame() %>%
+  filter(Freq > 100) %>%
+  ggplot(aes(x = ., y = Freq)) +
+  geom_col(fill = 'blue', alpha = 0.7) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Total Number of Recalls by Car Model", subtitle = "Only Models with over 100 Recalls") +
+  xlab("Car Model") + 
+  ylab("Total Recall Campaigns") +
+  scale_y_continuous(n.breaks = 10)
+```
+
+When examining Recall Campaigns by Car Model we see the Accord and Civic have a clear lead.
+
+While a little redundant, I wanted to track my steps as I completed this assessment.  This means I ultimately dropped variables that were examined and coded.
+
+For a 'Date' variable I opted for 'DATEA' which is the 'RECORD CREATION DATE'.  It was the only complete date variable, and did seem aptly suited for measuring the change of the other variables over time.
+
+```{r}
+recalls_dlrtr <-
+  recalls %>%
+  # Removing due to incomplete dates, and uncertain level of ability to track over time
+  select(!YEARTXT) %>%
+  select(!BGMAN) %>%
+  select(!ENDMAN) %>%
+  select(!ODATE) %>%
+  select(!RCDATE) %>%
+  # Following variables are removed; Represent entry descriptions
+  select(!DESC_DEFECT) %>%
+  select(!CONEQUENCE_DEFECT) %>%
+  select(!CORRECTIVE_ACTION) %>%
+  select(!NOTES) %>%
+  select(!MFR_COMP_DESC) %>%
+  select(!MFR_COMP_PTNO) %>%
+  # Removed but recoverable through RECORD_ID
+  select(!RPNO) %>%
+  select(!FMVSS) %>%
+  select(!RCL_CMPT_ID) %>%
+  # Filtering NA on POTAFF; only 1 entry is presently missing
+  filter(!is.na(POTAFF)) %>%
+  # Removing MFGCAMPNO due to usage of NHTSA's CAMPNO
+  select(!MFGCAMPNO) %>%
+  # Removing MFR_COMP_NAME due to irrelevance to analysis
+  select(!MFR_COMP_NAME) %>%
+  # Removing MODELTXT due to being outside of scope
+  select(!MODELTXT) %>%
+  # Removing RCLTYPECD due to uncertain levels and outside of scope
+  select(!RCLTYPECD)
+```
+
+Starting the actual trend analysis, I began by looking at Campaign Recall counts over time.  I had to decide on the level of 'detail' the time series plot would take in terms of aggregating individual entries.  I ultimately opted to produce a plot aggregated by Day, Month, and Year as they each offered some insight into what both the individual and market-wide trend was looking like.
+
+A quick look at what the transformation appears as:
+
+```{r}
+recalls_dlrtr %>%
+  group_by(DATEA_Y_FLOOR = floor_date(DATEA,"year"), MAKETXT) %>%
+  count()
+```
+
+Looking at our first plot:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA) %>%
+  count() %>%
+  ggplot(aes(x = DATEA, y = n)) + 
+  geom_line(color = 'blue',alpha = 0.7) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Occurrence of NHTSA Recall Campaigns over Time",
+          subtitle = "Campaigns aggregated by Day") +
+  ylab("Number of Campaigns") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  guides(color=guide_legend(title = "Vehicle Manufacturer", ncol=2))
+```
+
+Here we can make a few possible observations.  
+
+There certainly seems to be a difference in pattern starting right around the year 2000 where the number of Recall Campaigns noticeably increases in frequency.  This trend also seems to be continuing as we approach the year 2022.
+
+Making a broader adjustment on the plot:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_M_FLOOR = floor_date(DATEA, "month")) %>%
+  count() %>%
+  ggplot(aes(x = DATEA_M_FLOOR, y = n)) +
+  geom_line(color = 'blue', alpha = 0.7) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Occurrence of NHTSA Recall Campaigns over Time",
+          subtitle = "Campaigns aggregated by Month") +
+  ylab("Number of Campaigns") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  guides(color=guide_legend(title = "Vehicle Manufacturer", ncol=2))
+```
+
+We can more clearly see both of the previously described trends; the change at 2000, and an increase in frequency as we approach 2022.
+
+Aggregating by year we get a very clear visual on the upwards trend that is occurring:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_Y_FLOOR = floor_date(DATEA, "year")) %>%
+  count() %>%
+  ggplot(aes(x = DATEA_Y_FLOOR, y = n)) +
+  geom_line(color = 'blue', alpha = 0.7) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Occurrence of NHTSA Recall Campaigns over Time",
+          subtitle = "Campaigns aggregated by Year") +
+  ylab("Number of Campaigns") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  guides(color=guide_legend(title = "Vehicle Manufacturer", ncol=2))
+```
+
+The number of Recall Campaigns has certainly been on an upwards trend.  
+
+The next step was to decompose the trends we were seeing with Campaign Recalls by the individual Vehicle Manufacturers.
+
+The first few plots are with all of the manufacturers plotted together:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA, MAKETXT) %>%
+  count() %>%
+  ggplot(aes(x = DATEA, y = n, color = MAKETXT)) +
+  geom_line() +
+  scale_y_continuous(labels = comma_format()) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Occurrence of NHTSA Recall Campaigns over Time by Vehicle Manufacturer",
+          subtitle = "Campaigns aggregated by Day") +
+  ylab("Number of Campaigns") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  guides(color=guide_legend(title = "Vehicle Manufacturer", ncol=2))
+```
+
+While cluttered, there is some visible information gathered at the manufacturer level on the upward trend we've previously seen.
+ 
+Taking a broader look it continues:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_M_FLOOR = floor_date(DATEA,"month"), MAKETXT) %>%
+  count() %>%
+  ggplot(aes(x = DATEA_M_FLOOR, y = n, color = MAKETXT)) + 
+  geom_line() + 
+  scale_y_continuous(labels = comma_format()) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Occurrence of NHTSA Recall Campaigns over Time by Vehicle Manufacturer",
+          subtitle = "Campaigns aggregated by Month") +
+  ylab("Number of Campaigns") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  guides(color=guide_legend(title = "Vehicle Manufacturer", ncol=2))
+```
+
+Lets finally aggregate by year:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_Y_FLOOR = floor_date(DATEA,"year"), MAKETXT) %>%
+  count() %>%
+  ggplot(aes(x = DATEA_Y_FLOOR, y = n, color = MAKETXT)) + 
+  geom_line() + 
+  scale_y_continuous(labels = comma_format()) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Occurrence of NHTSA Recall Campaigns over Time by Vehicle Manufacturer",
+          subtitle = "Campaigns aggregated by Year") +
+  ylab("Number of Campaigns") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  guides(color=guide_legend(title = "Vehicle Manufacturer", ncol=2))
+```
+
+By aggregating by year we can see rather clearly that there seems to be a general increase in Recall Campaigns across the majority of manufacturers. It is also worth noting there seems to have been a larger than usual number of campaigns at the start of the data set being collected.
+ 
+The final step in analyzing Recall Campaigns over time is to plot the trends by Vehicle Manufacturers separately and identify their behavior.
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA, MAKETXT) %>%
+  count() %>%
+  ggplot(aes(x = DATEA, y = n, color = MAKETXT)) + 
+  geom_line() + 
+  scale_y_continuous(labels = comma_format()) + 
+  facet_wrap(~MAKETXT) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Occurrence of NHTSA Recall Campaigns over Time by Vehicle Manufacturer",
+          subtitle = "Campaigns aggregated by Day") +
+  ylab("Number of Campaigns") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  theme(legend.position = "none")
+```
+
+Here we see Honda, Subaru, Toyota, BMW, and Lexus all have a sharp upward trend in Recall Campaigns starting around 2005. 
+
+There is also insufficient data regarding Mercedes and Mopar, so plotting these offers little value.
+
+Looking for greater detail on trends by aggregating by month, our previous observations continue:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_M_FLOOR = floor_date(DATEA,"month"), MAKETXT) %>%
+  count() %>%
+  ggplot(aes(x = DATEA_M_FLOOR, y = n, color = MAKETXT)) + 
+  geom_line() + 
+  scale_y_continuous(labels = comma_format()) + 
+  facet_wrap(~MAKETXT) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Occurrence of NHTSA Recall Campaigns over Time by Vehicle Manufacturer",
+          subtitle = "Campaigns aggregated by Month") +
+  ylab("Number of Campaigns") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  theme(legend.position = "none")
+```
+
+And finally aggregating by year:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_Y_FLOOR = floor_date(DATEA,"year"), MAKETXT) %>%
+  count() %>%
+  ggplot(aes(x = DATEA_Y_FLOOR, y = n, color = MAKETXT)) + 
+  geom_line() + 
+  scale_y_continuous(labels = comma_format()) + 
+  facet_wrap(~MAKETXT) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Occurrence of NHTSA Recall Campaigns over Time by Vehicle Manufacturer",
+          subtitle = "Campaigns aggregated by Year") +
+  ylab("Number of Campaigns") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  theme(legend.position = "none")
+```
+
+Here we can see clearly which manufacturers are on an uptrend and which are not.  Honda, Subaru, Toyota, and BMW are clearly growing at an accelerating rate with respect to Recall Campaign occurrences.
+
+Taking a look at total occurrences by Vehicle Manufacturer we can see how Mercedes and Mopar have very few Recall Campaigns.
+
+```{r}
+recalls_dlrtr$MAKETXT %>%
+  table(dnn = "Total number of NHTSA Campaigns by Vehicle Manufacturer") %>% 
+  sort()
+```
+
+The next step in the exercise was to look at the number of possibly affected parts.
+
+A quick overview of the transformed data set used to do this analysis:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_M_FLOOR = floor_date(DATEA, "month"), MAKETXT) %>%
+  summarise(TOPOTAFF = sum(POTAFF))
+```
+
+
+Repeating the same process as before with adjusting how we aggregate, first by month:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_M_FLOOR = floor_date(DATEA, "month"), MAKETXT) %>%
+  summarise(TOPOTAFF = sum(POTAFF)) %>%
+  ggplot(aes(x = DATEA_M_FLOOR, y = TOPOTAFF)) +
+  geom_line(color = 'blue', alpha = 0.7) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Potentially Affected Parts by NHTSA Recall Campaigns over Time",
+          subtitle = "Campaigns aggregated by Month") +
+  ylab("Number of Parts") +
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  scale_y_continuous(labels = comma_format(), n.breaks = 10) +
+  guides(color = guide_legend(title = "Vehicle Manufacturer", ncol = 2))
+```
+
+We can start to see an upward trend in the 2000's.
+
+Continuing by year:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_Y_FLOOR = floor_date(DATEA, "year"), MAKETXT) %>%
+  summarise(TOPOTAFF = sum(POTAFF)) %>%
+  ggplot(aes(x = DATEA_Y_FLOOR, y = TOPOTAFF)) +
+  geom_line(color = 'blue', alpha = 0.7) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Potentially Affected Parts by NHTSA Recall Campaigns over Time",
+          subtitle = "Campaigns aggregated by Year") +
+  ylab("Number of Parts") +
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  scale_y_continuous(labels = comma_format(), n.breaks = 10) +
+  guides(color = guide_legend(title = "Vehicle Manufacturer", ncol = 2))
+```
+
+There is still that upward trend in frequency visible after 2005 or so.
+
+Lets look at Potentially Affected Parts by individual Vehicle Manufacturer.
+
+First by month aggregation:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_M_FLOOR = floor_date(DATEA, "month"), MAKETXT) %>%
+  summarise(TOPOTAFF = sum(POTAFF)) %>%
+  ggplot(aes(x = DATEA_M_FLOOR, y = TOPOTAFF, color = MAKETXT)) + 
+  geom_line() + 
+  facet_wrap(~MAKETXT, ncol = 4) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Potential Affected Parts over Time by Vehicle Manufacturer",
+          subtitle = "Campaigns aggregated by Month") +
+  ylab("Number of Potentially Affected Parts") + 
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  scale_y_continuous(labels = comma_format(), n.breaks = 4) +
+  theme(legend.position = "none")
+```
+
+Then by year aggregation:
+
+```{r message=FALSE, warning=FALSE}
+recalls_dlrtr %>%
+  group_by(DATEA_Y_FLOOR = floor_date(DATEA, "year"), MAKETXT) %>%
+  summarise(TOPOTAFF = sum(POTAFF)) %>%
+  ggplot(aes(x = DATEA_Y_FLOOR, y = TOPOTAFF, color = MAKETXT)) + 
+  geom_line() + 
+  facet_wrap(~MAKETXT, ncol = 4) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+  ggtitle("Potential Affected Parts over Time by Vehicle Manufacturer",
+          subtitle = "Campaigns aggregated by Year") +
+  ylab("Number of Potentially Affected Parts") +  
+  xlab("Dates") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  scale_y_continuous(labels = comma_format(), n.breaks = 6) +
+  theme(legend.position = "none")
+```
+
+Here we can see that Toyota and Honda have a noticeable upwards trend in total parts affected during recall campaigns.  There is much less obvious trends with all other manufacturers, though Lexus also seems to be steadily rising.
+
+When considering the Possibly Affected Parts over Time plotted on the same scale for each manufacturer, there is the chance that trends will be made unnoticeable due to other manufacturers having an over-abdundance of Possibly Affected Parts.  Therefore it is worth checking each plot individually to see if, while smaller in amount, the other manufacturers could still be seeing a trend upwards or downwards in regards to parts affected.  Note again that there is presently insufficient data to plot Mopar and Mercedes in this respect at this time.
+
+```{r message=FALSE, warning=FALSE}
+for(plotby_var in unique(recalls_dlrtr$MAKETXT)) {
+  potaff_vehmnfct_ggplot <-
+    recalls_dlrtr %>%
+    filter(MAKETXT == plotby_var) %>%
+    group_by(DATEA_Y_FLOOR = floor_date(DATEA, "year"), MAKETXT) %>%
+    summarise(TOPOTAFF = sum(POTAFF)) %>%
+    ggplot(aes(x = DATEA_Y_FLOOR, y = TOPOTAFF, color = MAKETXT)) +
+    geom_line() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+    ggtitle(paste("Potential Affected Parts over Time by",plotby_var),
+            subtitle = "Campaigns aggregated by Year") +
+    ylab("Number of Potentially Affected Parts") +
+    xlab("Dates") +
+    scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+    scale_y_continuous(labels = comma_format(), n.breaks = 10) +
+    theme(legend.position = "none")
+  plot(potaff_vehmnfct_ggplot)
+}
+
+```
+
+
+After assessing the above graphs, there are a few further trends to conclude:
+
+* Land Rover has had a trend of frequent recalls possibly affecting hundreds of thousands of parts since 1996.
+* Lexus does seem to be incurring an upwards trend since 2008 in number of possibly affected parts during recall campaigns.
+* BMW also seems to be incurring an upwards trend since 2008 in number of possibly affected parts during recall campaigns.
+* Mini has had a pattern of recalls since 2011, but the number of parts has held rather steady.
+* Toyota has a had a pattern of recurring recalls since 2006 that have possibly affected millions of parts.
+* Subaru, Honda, and Acura all shows signs of both an upwards trend in number of possibly affected parts during recall campaigns, and an increase in recalls since 2011.

@@ -1,0 +1,99 @@
+---
+title: Representing inter-relationships in data with Chord diagrams in R
+author: Brandon P. Pipher
+date: '2020-06-23'
+slug: []
+categories:
+  - Data Visualization
+tags:
+  - circlize
+  - chorddiag
+subtitle: |
+  Chord Diagrams: Gotta Catch \'Em All!
+summary: |
+  Brief discussion of `chorddiag`, `circlize` and other methods of producing chord diagrams
+authors: []
+lastmod: '2020-06-23T20:13:47-04:00'
+featured: no
+image:
+  caption: 'Acanthophyllia'
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: false
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/d3/d3.min.js"></script>
+<script src="/rmarkdown-libs/d3-tip/index.js"></script>
+<link href="/rmarkdown-libs/chorddiag/chorddiag.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/chorddiag/chorddiag.js"></script>
+<script src="/rmarkdown-libs/chorddiag-binding/chorddiag.js"></script>
+
+
+<pre class="r"><code>library(circlize)
+library(chorddiag)
+library(tidyverse)</code></pre>
+<p>I’ve noticed Chord diagrams to be growing in popularity recently, and mostly by people utilizing Python or Flourish. Taking this as inspiration, I had hoped to do the same using R.</p>
+<p>The <code>circlize</code> package is fairly straightforward, especially with its <a href="https://jokergoo.github.io/circlize_book/book/">detailed documentation</a>, but I often prefer the interactivity other methods offer. Chord diagrams quickly produce too much information and being able to browse individual Chords goes a long way in producing an effective presentation. Another alternative is with <code>Plotly</code>, but it requires a fair amount of effort. I had also <a href="https://python-graph-gallery.com/chord-diagram/">recently learned</a> that <code>Bokeh</code> can also produce these.</p>
+<p>For the showcase data I’ll stick with a Pokemon dataset that I’ve seen used for various visualizations. The dataset in question is <a href="https://www.kaggle.com/abcsds/pokemon">here</a>, but another equally interesting dataset is <a href="https://www.kaggle.com/rounakbanik/pokemon?select=pokemon.csv">here</a></p>
+<p>The goal is to demonstrate the relationship (flow) between the primary and secondary type sets.</p>
+<pre class="r"><code>library(circlize)
+library(chorddiag)
+# The following libraries are used for
+# quickly producing an adjacency matrix
+library(igraph)
+library(tidygraph)
+# Quick cleaning of the data
+# Removing Mega&#39;s and Forme duplications
+pokemon &lt;- 
+  pokemon_data %&gt;% 
+  filter(str_detect(Name,&quot;Mega &quot;,
+                    negate = TRUE)) %&gt;%
+  filter(!duplicated(`#`))
+
+# To quickly plot in Circlize you need
+# to form the data into a frequency table
+pokecount &lt;-
+  pokemon %&gt;%
+  count(`Type 1`,`Type 2`, sort = TRUE) %&gt;%
+  mutate(`Type 2` = coalesce(`Type 2`,`Type 1`))
+
+circlize::chordDiagram(pokecount)</code></pre>
+<p><img src="/post/2020-06-23-representing-inter-relationships-in-data-with-chord-diagrams-in-r/index.en_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Looking at the above, I think the “too much information” approach is demonstrated fairly well.</p>
+<p>However, I did find a package to accomplish this that I’ve become rather fond of: <code>chorddiag</code>.</p>
+<p>The <code>chorddiag</code> package isn’t hosted on CRAN, but you can find it on <a href="https://github.com/mattflor/chorddiag">github here</a>. The gist of <code>chorddiag</code> is that it allows you to create interactive chord diagrams by way of the JavaScript visualization library D3 (<a href="http://d3js.org" class="uri">http://d3js.org</a>). It works from within R using the htmlwidgets interfacing framework.</p>
+<p>To use the default plotting function we will need an adjacency matrix rather than a frequency table. I did this the manual way at first:</p>
+<pre class="r"><code>pokecount_mat &lt;- 
+  pokecount %&gt;%
+  pivot_wider(names_from = &#39;Type 2&#39;,
+              values_from = n) %&gt;%
+  replace(is.na(.),0)
+
+pokecount_mat &lt;- 
+  pokecount_mat[c(&quot;Type 1&quot;,pokecount_mat %&gt;% 
+                                   select(&quot;Type 1&quot;) %&gt;%
+                                   unique() %&gt;% 
+                                   as.matrix %&gt;%
+                                   as.character())]
+pokecount_mat &lt;-
+  pokecount_mat %&gt;%
+  column_to_rownames(&quot;Type 1&quot;) %&gt;%
+  as.matrix()
+
+
+chorddiag::chorddiag(pokecount_mat)</code></pre>
+<div id="htmlwidget-1" style="width:672px;height:480px;" class="chorddiag html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"matrix":[[60,1,2,2,0,0,0,0,4,0,1,0,0,0,0,0,0,23],[0,57,3,4,0,2,2,0,2,3,9,3,2,4,2,4,1,7],[0,0,33,2,0,0,3,0,2,14,1,2,0,3,0,0,2,4],[0,0,1,32,1,0,1,0,5,0,0,0,0,0,1,0,0,6],[2,1,0,1,28,0,6,0,0,0,2,0,0,0,0,1,1,5],[2,0,0,0,0,26,0,0,1,0,0,0,0,0,1,0,3,3],[0,0,0,2,0,0,20,0,0,0,0,0,0,1,0,0,1,1],[0,1,6,0,2,2,1,17,0,11,1,0,0,0,1,3,5,13],[0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,2],[0,1,0,0,0,0,2,1,0,15,2,0,1,3,0,0,0,3],[0,0,0,2,0,1,0,0,0,0,13,0,2,3,2,3,1,3],[0,3,0,2,0,0,0,0,0,0,3,12,0,0,1,0,0,2],[0,0,0,2,1,1,0,0,0,0,4,1,11,0,0,0,0,4],[0,0,0,2,2,0,2,0,0,0,0,2,3,9,1,0,2,5],[0,0,4,0,3,0,0,0,0,3,0,0,1,1,9,0,0,2],[0,6,2,2,0,0,1,2,2,0,6,2,2,1,0,9,3,3],[0,0,0,6,0,0,1,0,2,0,1,0,1,0,3,3,4,1],[0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,1]],"options":{"type":"directional","width":null,"height":null,"margin":100,"showGroupnames":true,"groupNames":["Normal","Water","Grass","Psychic","Fire","Electric","Fighting","Bug","Fairy","Poison","Ground","Ice","Dragon","Dark","Ghost","Rock","Steel","Flying"],"groupColors":["#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02","#A6761D","#666666"],"groupThickness":0.1,"groupPadding":0.0349065850398866,"groupnamePadding":[30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30],"groupnameFontsize":18,"groupedgeColor":null,"chordedgeColor":"#808080","categoryNames":null,"categorynamePadding":100,"categorynameFontsize":28,"showTicks":true,"tickInterval":1,"ticklabelFontsize":10,"fadeLevel":0.1,"showTooltips":true,"showZeroTooltips":true,"tooltipNames":["Normal","Water","Grass","Psychic","Fire","Electric","Fighting","Bug","Fairy","Poison","Ground","Ice","Dragon","Dark","Ghost","Rock","Steel","Flying"],"tooltipFontsize":12,"tooltipUnit":"","tooltipGroupConnector":" &#x25B6; ","precision":"null","clickAction":null,"clickGroupAction":null}},"evals":[],"jsHooks":[]}</script>
+<p>Though I had also found there is also a more automated way using <code>igraph</code> and <code>tidygraph</code>:</p>
+<pre class="r"><code># Using igraph and tidygraph to reshape
+pokecount %&gt;%
+  tidygraph::as_tbl_graph() %&gt;%
+  igraph::as_adjacency_matrix(attr = &quot;n&quot;) %&gt;%
+  # chorddiag requires a matrix, not a tibble
+  as.matrix() %&gt;%
+  chorddiag::chorddiag()</code></pre>
+<div id="htmlwidget-2" style="width:672px;height:480px;" class="chorddiag html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"matrix":[[60,1,2,2,0,0,0,0,4,0,1,0,0,0,0,0,0,23],[0,57,3,4,0,2,2,0,2,3,9,3,2,4,2,4,1,7],[0,0,33,2,0,0,3,0,2,14,1,2,0,3,0,0,2,4],[0,0,1,32,1,0,1,0,5,0,0,0,0,0,1,0,0,6],[2,1,0,1,28,0,6,0,0,0,2,0,0,0,0,1,1,5],[2,0,0,0,0,26,0,0,1,0,0,0,0,0,1,0,3,3],[0,0,0,2,0,0,20,0,0,0,0,0,0,1,0,0,1,1],[0,1,6,0,2,2,1,17,0,11,1,0,0,0,1,3,5,13],[0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,0,0,2],[0,1,0,0,0,0,2,1,0,15,2,0,1,3,0,0,0,3],[0,0,0,2,0,1,0,0,0,0,13,0,2,3,2,3,1,3],[0,3,0,2,0,0,0,0,0,0,3,12,0,0,1,0,0,2],[0,0,0,2,1,1,0,0,0,0,4,1,11,0,0,0,0,4],[0,0,0,2,2,0,2,0,0,0,0,2,3,9,1,0,2,5],[0,0,4,0,3,0,0,0,0,3,0,0,1,1,9,0,0,2],[0,6,2,2,0,0,1,2,2,0,6,2,2,1,0,9,3,3],[0,0,0,6,0,0,1,0,2,0,1,0,1,0,3,3,4,1],[0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,1]],"options":{"type":"directional","width":null,"height":null,"margin":100,"showGroupnames":true,"groupNames":["Normal","Water","Grass","Psychic","Fire","Electric","Fighting","Bug","Fairy","Poison","Ground","Ice","Dragon","Dark","Ghost","Rock","Steel","Flying"],"groupColors":["#1B9E77","#D95F02","#7570B3","#E7298A","#66A61E","#E6AB02","#A6761D","#666666"],"groupThickness":0.1,"groupPadding":0.0349065850398866,"groupnamePadding":[30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30],"groupnameFontsize":18,"groupedgeColor":null,"chordedgeColor":"#808080","categoryNames":null,"categorynamePadding":100,"categorynameFontsize":28,"showTicks":true,"tickInterval":1,"ticklabelFontsize":10,"fadeLevel":0.1,"showTooltips":true,"showZeroTooltips":true,"tooltipNames":["Normal","Water","Grass","Psychic","Fire","Electric","Fighting","Bug","Fairy","Poison","Ground","Ice","Dragon","Dark","Ghost","Rock","Steel","Flying"],"tooltipFontsize":12,"tooltipUnit":"","tooltipGroupConnector":" &#x25B6; ","precision":"null","clickAction":null,"clickGroupAction":null}},"evals":[],"jsHooks":[]}</script>
+<p>Talk about an efficient work flow! Comparing the two I think it becomes strikingly clear how much interactivity adds to this plot. Of course interactivity isn’t always feasible for every medium, and that is where working off of <code>circlize</code> would likely have a distinct advantage.</p>

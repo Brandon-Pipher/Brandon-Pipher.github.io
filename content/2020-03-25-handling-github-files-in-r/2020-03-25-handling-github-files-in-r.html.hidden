@@ -1,0 +1,158 @@
+---
+title: Handling Github files in R
+author: Brandon P. Pipher
+date: '2020-03-25'
+thumbnail: "/post/2020-03-25-handling-github-files-in-r_files/IMG_4427.jpg"
+slug: handling-github-files-in-r
+categories:
+  - Github
+  - Data
+tags:
+  - Github
+  - R
+  - Dplyr
+  - Readr
+  - Stringr
+subtitle: 'An example utilizing COVID-19 data from John Hopkins'
+summary: 'An example utilizing COVID-19 data from John Hopkins'
+image_preview: "/post/2020-03-25-handling-github-files-in-r_files/IMG_4427.jpg"
+authors: []
+lastmod: '2020-03-25T12:50:13-04:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<p><img src="/post/2020-03-25-handling-github-files-in-r_files/IMG_4427.jpg" /></p>
+<div id="john-hopkins-covid-19-data" class="section level1">
+<h1>John Hopkins COVID-19 Data</h1>
+<p>Given some recent updates to the way John Hopkins is adjusting their data formatting regarding COVID-19 (<a href="https://github.com/CSSEGISandData/COVID-19/issues/1250">read more here</a>) the method of reading updated data has gotten easier. This also makes utilizing something like the <a href="coronavirus:%20The%202019%20Novel%20Coronavirus%20COVID-19%20(2019-nCoV)%20Dataset">coronavirus: The 2019 Novel Coronavirus COVID-19 (2019-nCoV) Dataset</a> for accessing up-to-date data more attractive, as you’ll be gaining much of the same results albeit without the time series John Hopkins is still making available.</p>
+<p>When the Daily Reports were being reported it required some management to maintain up-to-date access to the data. I found figuring this out to be something that may come in handy for future endeavors and so I hope to detail the steps here.</p>
+<p>This convenience update did come at a cost, however, as recovered cases are no longer being tracked. However, as of this post they are still being tracked by Dailies meaning you could utilize the methods below to access this data as they seem committed to keeping old formats archived.</p>
+</div>
+<div id="the-process-to-handle-files-from-a-github-repo" class="section level1">
+<h1>The Process to handle files from a Github repo</h1>
+<p>The steps are fairly simple and utilize three packages:</p>
+<pre class="r"><code>library(dplyr) # Handles Grammar of Data Manipulation
+library(readr) # Handles importing excel file formats into R
+library(stringr) # Handles management of file names from github</code></pre>
+<p>The first few steps are your basic file management. We want to define our working directory, the URL the repo will download from, and the directory the data will be unpackaged at.</p>
+<pre class="r"><code># Assigning my directory
+setwd(&quot;~/GitHub/brandonpipher.com/content/post&quot;)</code></pre>
+<pre class="r"><code># Repo URL, found by copying link from &quot;Clone or Download&quot;
+githubloc &lt;-
+  &quot;https://github.com/CSSEGISandData/COVID-19/archive/master.zip&quot;
+# Where the repo will be downloaded and unpackaged at in the working directory
+datadir &lt;- &quot;COVID-19&quot;
+destfile &lt;- paste(datadir,&quot;master.zip&quot;,sep = &quot;/&quot;)</code></pre>
+<p>Adjust the above according to your own workflow.</p>
+<p>Downloading the file and unpackaging it is also straightforward.</p>
+<pre class="r"><code># Downloading repo to destination
+download.file(url = githubloc, destfile = destfile)
+# Unzipping downloaded rip to destination of the &#39;data&#39; folder
+unzip(zipfile = destfile, exdir = datadir)</code></pre>
+<p>Something worth considering is a check to ensure you aren’t re-downloading more than necessary.</p>
+<p>In a reactive environment a function such as the following might be handy, where we can calculate the time passed since the previous download.</p>
+<pre class="r"><code>minutesSince.DL = function(fileName) {
+  (as.numeric(as.POSIXlt(Sys.time())) -  
+   as.numeric(file.info(fileName)$ctime)) / 60
+}</code></pre>
+<p>From here most of the work regarding inital data update has been completed. The next step is accessing the data into R.</p>
+<pre class="r"><code># Manually adding the folder names from the repo to determine the data location
+covid.dailies.loc &lt;-
+  paste(
+    datadir,
+    &quot;COVID-19-master&quot;,
+    &quot;csse_covid_19_data/csse_covid_19_daily_reports&quot;,
+    sep = &quot;/&quot;
+  )
+covid.dailies.loc</code></pre>
+<pre><code>## [1] &quot;COVID-19/COVID-19-master/csse_covid_19_data/csse_covid_19_daily_reports&quot;</code></pre>
+<pre class="r"><code># Creating a list of available files, but ignoring the README
+covid.dailies &lt;-
+  list.files(covid.dailies.loc)[!grepl(&quot;README&quot;, list.files(covid.dailies.loc))]
+covid.dailies</code></pre>
+<pre><code>##  [1] &quot;01-22-2020.csv&quot; &quot;01-23-2020.csv&quot; &quot;01-24-2020.csv&quot; &quot;01-25-2020.csv&quot;
+##  [5] &quot;01-26-2020.csv&quot; &quot;01-27-2020.csv&quot; &quot;01-28-2020.csv&quot; &quot;01-29-2020.csv&quot;
+##  [9] &quot;01-30-2020.csv&quot; &quot;01-31-2020.csv&quot; &quot;02-01-2020.csv&quot; &quot;02-02-2020.csv&quot;
+## [13] &quot;02-03-2020.csv&quot; &quot;02-04-2020.csv&quot; &quot;02-05-2020.csv&quot; &quot;02-06-2020.csv&quot;
+## [17] &quot;02-07-2020.csv&quot; &quot;02-08-2020.csv&quot; &quot;02-09-2020.csv&quot; &quot;02-10-2020.csv&quot;
+## [21] &quot;02-11-2020.csv&quot; &quot;02-12-2020.csv&quot; &quot;02-13-2020.csv&quot; &quot;02-14-2020.csv&quot;
+## [25] &quot;02-15-2020.csv&quot; &quot;02-16-2020.csv&quot; &quot;02-17-2020.csv&quot; &quot;02-18-2020.csv&quot;
+## [29] &quot;02-19-2020.csv&quot; &quot;02-20-2020.csv&quot; &quot;02-21-2020.csv&quot; &quot;02-22-2020.csv&quot;
+## [33] &quot;02-23-2020.csv&quot; &quot;02-24-2020.csv&quot; &quot;02-25-2020.csv&quot; &quot;02-26-2020.csv&quot;
+## [37] &quot;02-27-2020.csv&quot; &quot;02-28-2020.csv&quot; &quot;02-29-2020.csv&quot; &quot;03-01-2020.csv&quot;
+## [41] &quot;03-02-2020.csv&quot; &quot;03-03-2020.csv&quot; &quot;03-04-2020.csv&quot; &quot;03-05-2020.csv&quot;
+## [45] &quot;03-06-2020.csv&quot; &quot;03-07-2020.csv&quot; &quot;03-08-2020.csv&quot; &quot;03-09-2020.csv&quot;
+## [49] &quot;03-10-2020.csv&quot; &quot;03-11-2020.csv&quot; &quot;03-12-2020.csv&quot; &quot;03-13-2020.csv&quot;
+## [53] &quot;03-14-2020.csv&quot; &quot;03-15-2020.csv&quot; &quot;03-16-2020.csv&quot; &quot;03-17-2020.csv&quot;
+## [57] &quot;03-18-2020.csv&quot; &quot;03-19-2020.csv&quot; &quot;03-20-2020.csv&quot; &quot;03-21-2020.csv&quot;
+## [61] &quot;03-22-2020.csv&quot; &quot;03-23-2020.csv&quot; &quot;03-24-2020.csv&quot;</code></pre>
+<p>And from here we’ve gained access to all of the files in a method that remains up-to-date as additions are made. If we wanted to start to access these files by specifically tracking the range of available dates we can just use stringr to gain the vector of dates:</p>
+<pre class="r"><code>covid.dailies.dates &lt;- covid.dailies %&gt;% str_remove(&quot;.csv&quot;)
+covid.dailies.dates</code></pre>
+<pre><code>##  [1] &quot;01-22-2020&quot; &quot;01-23-2020&quot; &quot;01-24-2020&quot; &quot;01-25-2020&quot; &quot;01-26-2020&quot;
+##  [6] &quot;01-27-2020&quot; &quot;01-28-2020&quot; &quot;01-29-2020&quot; &quot;01-30-2020&quot; &quot;01-31-2020&quot;
+## [11] &quot;02-01-2020&quot; &quot;02-02-2020&quot; &quot;02-03-2020&quot; &quot;02-04-2020&quot; &quot;02-05-2020&quot;
+## [16] &quot;02-06-2020&quot; &quot;02-07-2020&quot; &quot;02-08-2020&quot; &quot;02-09-2020&quot; &quot;02-10-2020&quot;
+## [21] &quot;02-11-2020&quot; &quot;02-12-2020&quot; &quot;02-13-2020&quot; &quot;02-14-2020&quot; &quot;02-15-2020&quot;
+## [26] &quot;02-16-2020&quot; &quot;02-17-2020&quot; &quot;02-18-2020&quot; &quot;02-19-2020&quot; &quot;02-20-2020&quot;
+## [31] &quot;02-21-2020&quot; &quot;02-22-2020&quot; &quot;02-23-2020&quot; &quot;02-24-2020&quot; &quot;02-25-2020&quot;
+## [36] &quot;02-26-2020&quot; &quot;02-27-2020&quot; &quot;02-28-2020&quot; &quot;02-29-2020&quot; &quot;03-01-2020&quot;
+## [41] &quot;03-02-2020&quot; &quot;03-03-2020&quot; &quot;03-04-2020&quot; &quot;03-05-2020&quot; &quot;03-06-2020&quot;
+## [46] &quot;03-07-2020&quot; &quot;03-08-2020&quot; &quot;03-09-2020&quot; &quot;03-10-2020&quot; &quot;03-11-2020&quot;
+## [51] &quot;03-12-2020&quot; &quot;03-13-2020&quot; &quot;03-14-2020&quot; &quot;03-15-2020&quot; &quot;03-16-2020&quot;
+## [56] &quot;03-17-2020&quot; &quot;03-18-2020&quot; &quot;03-19-2020&quot; &quot;03-20-2020&quot; &quot;03-21-2020&quot;
+## [61] &quot;03-22-2020&quot; &quot;03-23-2020&quot; &quot;03-24-2020&quot;</code></pre>
+<p>From here utilizing <code>covid.dailies.dates</code> we can access the data according to available dates. As an example:</p>
+<pre class="r"><code># Pulling an example of the most recent dataset
+example.input &lt;- covid.dailies.dates[length(covid.dailies.dates)]
+example.input</code></pre>
+<pre><code>## [1] &quot;03-24-2020&quot;</code></pre>
+<pre class="r"><code># The example dataset
+example.data &lt;- read_csv(paste(covid.dailies.loc, paste0(example.input,&#39;.csv&#39;), sep = &quot;/&quot;))</code></pre>
+<p>And from here we could imagine <code>example.input</code> as being assigned reactively, and so we’ve created a way of managing the data from Github (or any other public URL, really) in real-time.</p>
+<pre class="r"><code>example.data %&gt;% 
+  group_by(`Country_Region`) %&gt;% 
+  summarize(Total = sum(Confirmed)) %&gt;%
+  arrange(desc(Total))</code></pre>
+<pre><code>## # A tibble: 169 x 2
+##    Country_Region Total
+##    &lt;chr&gt;          &lt;dbl&gt;
+##  1 China          81591
+##  2 Italy          69176
+##  3 US             53740
+##  4 Spain          39885
+##  5 Germany        32986
+##  6 Iran           24811
+##  7 France         22622
+##  8 Switzerland     9877
+##  9 Korea, South    9037
+## 10 United Kingdom  8164
+## # ... with 159 more rows</code></pre>
+</div>
+<div id="how-to-access-the-data-post-update" class="section level1">
+<h1>How to access the data Post-Update</h1>
+<p>Coming back to the present, remember there were updates made simplifying this process. No longer would anyone need to access the files from the dailies and manually wrangle the data.</p>
+<p>Instead one just goes to the <a href="https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_time_series">Github Repo</a> and access is as easy as pulling the files:</p>
+<p><code>time_series_covid19_confirmed_global.csv</code>
+<code>time_series_covid19_deaths_global.csv</code></p>
+<p>Or, if you want to do it straight from a package hosted on CRAN and aren’t concerned about time-series data:</p>
+<pre class="r"><code>library(coronavirus)
+head(coronavirus)</code></pre>
+<pre><code>## # A tibble: 6 x 7
+##   Province.State Country.Region   Lat  Long date       cases type     
+##   &lt;chr&gt;          &lt;chr&gt;          &lt;dbl&gt; &lt;dbl&gt; &lt;date&gt;     &lt;int&gt; &lt;chr&gt;    
+## 1 &quot;&quot;             Japan           35.7  140. 2020-01-22     2 confirmed
+## 2 &quot;&quot;             South Korea     37.6  127. 2020-01-22     1 confirmed
+## 3 &quot;&quot;             Thailand        13.8  101. 2020-01-22     2 confirmed
+## 4 Anhui          Mainland China  31.8  117. 2020-01-22     1 confirmed
+## 5 Beijing        Mainland China  40.2  116. 2020-01-22    14 confirmed
+## 6 Chongqing      Mainland China  30.1  108. 2020-01-22     6 confirmed</code></pre>
+<p>More info about the <code>coronavirus</code> package can be found <a href="https://github.com/RamiKrispin/coronavirus">here</a>.</p>
+</div>

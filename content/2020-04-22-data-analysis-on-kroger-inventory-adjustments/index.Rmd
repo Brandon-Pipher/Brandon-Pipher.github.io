@@ -1,0 +1,165 @@
+---
+title: Data Analysis on Kroger Inventory Adjustments
+author: Brandon P. Pipher
+date: '2020-04-22'
+slug: []
+categories:
+  - Data Analysis
+tags:
+  - R
+  - Tidyverse
+  - ggplot2
+subtitle: 'A 30-minute invesigation of a month of inventory adjustments'
+summary:  'A 30-minute invesigation of a month of inventory adjustments'
+authors: []
+lastmod: '2020-04-22T13:44:39-04:00'
+featured: no
+image:
+  caption: 'Trachyphyllia'
+  focal_point: ''
+  preview_only: no
+projects: []
+math: true
+draft: false
+---
+# About
+
+The data set examined below contains inventory accuracy records from a number of Kroger Grocery stores. The ‘adjustment unit quantity’ is the unit variance that 3rd party auditors confirmed upon visiting a store, e.g., the first example below (-1) means that the auditing company found one less bowl of tropical fruit than the stores perpetual inventory had on record. The subsequent example (+14) means that the auditors counted fourteen more peach fruit bowls than the stores perpetual inventory.
+ 
+The objective was to work the data set in R and accomplish the following within 30 minutes:
+
+* 3 ‘actionable’ insights on inventory accuracy (by store, commodity, variance amounts, etc..)
+* Plots with supporting insights that visualize your story in ggplot
+* Documentation of your R script details
+
+While a fairly straightforward task it felt worthwhile to document this sort of assessment.
+
+The file is an .xlsb file which, when looking up, seemed notorious for being difficult to work with.  Most recommendations I saw at the time were to utilize a local-server type setup so it could be accessed with SQL or using the `excel.link` package.  As of this post there seems to have been a package specifically created on 04-13-2020 dedicated to solving this issue in R in a more elegant fashion [here](https://cran.r-project.org/web/packages/readxlsb/vignettes/read-xlsb-workbook.html).  When I had done this write-up this package was unfortunately unavailable, and juggling the file type wasn't a good use of time.
+
+However, mostly due to not being constrained by memory, my solution was to simply do a manual conversion from `.xlsb` to `.csv` with excel itself and was able to continue without any issue.
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(cache = FALSE)
+```
+
+```{r, message = FALSE, warning = FALSE}
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r, echo = FALSE, message = FALSE}
+# Manually converted xlsb to csv to avoid importing issue
+kroger <- read_csv("kroger-converted.csv")
+```
+
+# Exploratory Data Analysis
+A quick examiniation of the distribution of the AUQ values:
+```{r}
+summary(kroger$`Adjustment Unit Quantity`)
+```
+
+The minimum and maximum shows some clear signs of there being outliers present in the data when considering the quartiles. 
+
+The middle 50% of adjustments being between 1 and -1 shows good signs of inventory following forecasted demand.  Furthermore 90% of adjustments are between -5 and 5, and 95% between -10 and 10, and 99% between -30 and 30.  
+
+A histogram to help visualize the distribution:
+
+```{r}
+fig.market <- kroger %>%
+  ggplot(mapping = aes(x = `Adjustment Unit Quantity`,
+                       y = (..count..)/sum(..count..)))
+fig.market + 
+  geom_histogram(bins = 20000,
+                 fill = 'gray',
+                 color = 'black') + 
+  coord_cartesian(xlim = c(-50,50)) +
+  ylab("Frequency (%)") +
+  ggtitle("Histogram of overall AUQ")
+```
+
+A quick overview of the extreme AUQ values, both positive and negative:
+
+
+```{r}
+kroger %>%
+  arrange(desc(`Adjustment Unit Quantity`))
+kroger %>%
+  arrange(`Adjustment Unit Quantity`)
+```
+
+An immediate observation are some commodities in need of drastic adjustments to their inventory quantities for future orders.  These being:
+
+```{r}
+rbind(kroger %>% arrange(desc(`Adjustment Unit Quantity`)) %>% head(1),
+      kroger %>% arrange(`Adjustment Unit Quantity`) %>% head(3))
+```
+
+Another observation worth noting is three of these four extreme adjustments all came from Store #00907.
+
+Taking a broad look at average adjustment per commodity category we can see Tomatoes and Melons are in excess demand overall, whereas Tropical Fruit are at a lower demand overall.
+
+```{r}
+# Sorting Average AUG per commodity from increasing to decreasing
+kroger %>% group_by(`Commodity Name`) %>%
+  summarise(avgAUQ = mean(`Adjustment Unit Quantity`)) %>% arrange(avgAUQ)
+# Sorting Average AUG per commodity from decreasing to increasing
+kroger %>% group_by(`Commodity Name`) %>%
+  summarise(avgAUQ = mean(`Adjustment Unit Quantity`)) %>% arrange(desc(avgAUQ))
+```
+
+```{r}
+# Creating a list of commodity names
+kroger$`Commodity Name` %>% unique() %>% length() -> commodnames
+```
+
+Taking a broader examiniation of the spread of AUQ across stores we can clearly identify that some stores are heavier in adjustments:
+
+```{r}
+# Boxplot of AUQ per store
+fig.store <- kroger %>% 
+  ggplot(aes(x = `Store #`, y = `Adjustment Unit Quantity`)) + 
+  ggtitle("Boxplot of AUQ by Store")
+
+fig.store.boxplot <- fig.store + 
+  geom_boxplot()
+
+fig.store.boxplot + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+```
+
+By focusing on which stores have AUQ's beyond a threshold of units in either direction we could narrow down some forecasting adjustments.  Taking a progessively closer examination of the distribution of adjustments around zero we can identify if any stores lean in a particular direction:
+
+```{r}
+fig.store.boxplot + coord_cartesian(ylim = c(-5000, 5000)) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + 
+  ggtitle("Boxplot of AUQ by Store")
+
+# Boxplot of AUQ per store - zoomed in
+fig.store.boxplot + coord_cartesian(ylim = c(-10, 10)) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + 
+  scale_y_continuous(breaks = seq(-10,10,1)) + ggtitle("Boxplot of AUQ by Store")
+```
+
+```{r, include = FALSE}
+# Split by stores
+#storelist <- kroger %>% group_split(`Store #`)
+#storelist.trim = storelist[c(5,6,11,26,27)]
+#lapply(storelist.trim,summary)
+#lapply(storelist[c(5,6,11,26,27)], function(X){print(ggplot(X,mapping = aes(x = `Commodity Name`, y = `Adjustment Unit Quantity`)) + #geom_boxplot()+theme(axis.text.x = element_text(angle = 90, vjust = 0.5)))})
+```
+
+From the above graph we can clearly identify store 00384 and 00929 had more under-adjustments and 00390, 00420, 00933 had more over-adjustments.
+
+# Actionable Insights
+
+1.)  Current forecasts keep 90% of inventory within $\pm5$ of expected demand, and 99% of inventory within $\pm30$ of expected demand.
+
+2.)  Four identifiable goods that had extreme adjustments and in need of modificaitons for future predictions.
+
+3.)  Tomatoes and Melons are in excess demand, whereas Tropical Fruit has fallen in demand.
+
+4.)  Five identified stores in need of more large-scale, yet minor, adjustments towards inventory to maintain the middle 50% of inventory being within $\pm1$ AUQ.
+
+
+
+
