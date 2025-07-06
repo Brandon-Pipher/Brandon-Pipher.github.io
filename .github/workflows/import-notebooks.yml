@@ -46,7 +46,14 @@ jobs:
           base: main
           labels: automated-pr, content
           branch: hugoblox-import-posts
-          delete-branch: true
+          delete-branch: true      
+      - name: Enable auto-merge for PR
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check outputs
         if: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
