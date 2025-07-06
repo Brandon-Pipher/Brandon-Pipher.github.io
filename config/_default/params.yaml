@@ -41,7 +41,7 @@ header:
 footer:
   blox: minimal
   copyright:
-    notice: '© {year} Brandon P. Pipher. This work is licensed under This work is licensed under the <a href="https://opensource.org/licenses/MIT" rel="noopener noreferrer" target="_blank">MIT License</a>.'
+    notice: '© {year} Brandon P. Pipher. This work is licensed under the <a href="https://opensource.org/licenses/MIT" rel="noopener noreferrer" target="_blank">MIT License</a>.'
     license:
       enable: false
       allow_derivatives: false
