@@ -25,7 +25,6 @@ sections:
         image:
           # Add your image background to `assets/media/`.
           filename: network-4851079_1920.jpg
-          #filename: 3d-flowing-cyber-particles-with-shallow-depth-field.jpg
           filters:
             brightness: 0.4
           size: cover
