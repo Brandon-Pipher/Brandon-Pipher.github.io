@@ -53,7 +53,7 @@ jobs:
         with:
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
           merge-method: squash
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check outputs
         if: ${{ steps.cpr.outputs.pull-request-number }}
         run: |
