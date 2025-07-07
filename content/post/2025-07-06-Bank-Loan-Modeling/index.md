@@ -4,6 +4,17 @@ title: "Bank Loan Modeling: Binary Classification Demo"
 draft: false
 toc: false 
 ---
+<div style="margin-bottom: 48px;">
+<a href="Bank_Personal_Loan_Modelling.csv" download style="background-color:#007BFF; color:#fff; padding:10px 15px; text-decoration:none; border-radius:5px; margin-right:20px; display:inline-block;">
+  📥 Download Data CSV
+</a>
+
+<a href="PyTorch.yml" download style="background-color:#007BFF; color:#fff; padding:10px 15px; text-decoration:none; border-radius:5px; margin-right:20px; display:inline-block;">
+  📥 Download Python yml
+</a>
+</div>
+
+
 # Context
 
 This case is about a bank which has a growing customer base. 
@@ -64,6 +75,7 @@ from catboost import CatBoostClassifier
 import plotly
 import plotly.express as px
 import plotly.io as pio
+from IPython.display import Image, display
 ```
 
 
@@ -330,7 +342,7 @@ Note that a mortgage-having individual has a 'Mortgage' variable greater than ze
 
 ```python
 # Number of CPU Cores / Only using CPU
-nCores = 20
+nCores = 16
 
 # Randomizer Seed
 RANDOM_STATE = 2030
@@ -358,7 +370,16 @@ fig = px.bar(
     title = 'Distribution of Personal Loan Purchases (y_train)',
     template = 'plotly_dark'
 )
+
+fig.write_image('fig1.png')
+display(Image(filename="fig1.png"))
 ```
+
+
+    
+![png](index_files/index_10_0.png)
+    
+
 
 
 ```python
@@ -406,7 +427,7 @@ model_configs = {
     },
 
     'catboost': {
-        'model': CatBoostClassifier(verbose=0, task_type='CPU',  random_state=RANDOM_STATE),
+        'model': CatBoostClassifier(verbose=0, task_type='GPU',  random_state=RANDOM_STATE),
         'params': {
             'model__iterations': [100, 300],
             'model__depth': [4, 6],
@@ -456,7 +477,7 @@ for name, config in model_configs.items():
         cat_features_indices = [X.columns.get_loc(col) for col in categorical_cols]
 
         # Reinitialize CatBoost with cat_features in constructor
-        model = CatBoostClassifier(verbose=0, task_type='CPU', cat_features=cat_features_indices)
+        model = CatBoostClassifier(verbose=0, task_type='GPU',  random_state=RANDOM_STATE, cat_features=cat_features_indices)
 
         # Skip encoding: passthrough raw data
         pipe = Pipeline([
@@ -550,7 +571,7 @@ print(results_df)
 
                    model  best_score (f1)  test_score (f1)  Accuracy  Precision  \
     3           catboost         0.931500         0.917127     0.985   0.976471   
-    2            xgboost         0.927703         0.928962     0.987   0.977011   
+    2            xgboost         0.929276         0.923077     0.986   0.976744   
     0           logistic         0.739183         0.785276     0.965   0.955224   
     1                svc         0.736628         0.777778     0.964   0.954545   
     5   dummy_always_one         0.175180         0.175182     0.096   0.096000   
@@ -561,7 +582,7 @@ print(results_df)
     
          Recall  Specificity  TP   TN   FP  FN  \
     3  0.864583     0.997788  83  902    2  13   
-    2  0.885417     0.997788  85  902    2  11   
+    2  0.875000     0.997788  84  902    2  12   
     0  0.666667     0.996681  64  901    3  32   
     1  0.656250     0.996681  63  901    3  33   
     5  1.000000     0.000000  96    0  904   0   

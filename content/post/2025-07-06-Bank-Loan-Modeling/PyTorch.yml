@@ -1,0 +1,32 @@
+name: PyTorch
+channels:
+  - pytorch
+  - conda-forge
+dependencies:
+  # Base
+  - python
+  - numpy
+  - pandas
+  - ipykernel
+  # Stats
+  - statsmodels
+  # Jupyter
+  - jupyter
+  - nbconvert
+  # Machine Learning
+  - xgboost
+  - catboost
+  - lightgbm
+  - pytorch
+  - scikit-learn
+  # Plotting
+  - plotly
+  - matplotlib
+  - seaborn
+  # Data
+  - pandas
+  - duckdb
+  # pip
+  - pip:
+    # Needed for Plotly
+    - kaleido>=1.0.0
