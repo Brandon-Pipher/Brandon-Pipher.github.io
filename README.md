@@ -19,3 +19,22 @@ Use 'hugo' to set up and 'hugo server -D' to serve locally with draft posts. Hug
 Pull ./.github/workflows/import-notebooks.yml from another repo and create ./notebooks/ directory. Allows ipynb conversions.
 
 Needs a .gitignore to be created.
+
+
+# Getting Started on ubuntu
+
+Verify the version of `hugo` needed by checking hugoblox.yaml (0.136.5-extended)
+
+Can be installed using the following:
+
+```
+wget https://github.com/gohugoio/hugo/releases/download/v0.136.5/hugo_extended_0.136.5_linux-amd64.deb
+sudo dpkg -i hugo_extended_0.136.5_linux-amd64.deb || sudo apt -f install
+```
+
+Will also need `go` and `nodejs` and is easily installed using snap:
+
+```
+sudo snap install --classic go
+sudo snap install --classic node
+```
