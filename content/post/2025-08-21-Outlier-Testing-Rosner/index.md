@@ -48,7 +48,7 @@ Each method has trade-offs, and without rigorous subject matter expertise many i
 
 
 ### Step 1: Defining our Hypothesis Test
-Let’s say we have $n$ observations, $x_1, x_2, ... , x_n$. Given an upper bound on the maximum number of outliers, $k$, we perform $k$ separate tests. A test for one outlier, a test for two outliers, ..., up to a test for $k$ outliers. Importantly, *$k$* is just the **maximum possible number of outliers you’re willing to test for** — it is not a commitment that there are exactly *$k$* outliers.
+Let’s say we have $n$ observations, $x_1, x_2, ... , x_n$. Given an upper bound on the maximum number of outliers, $k$, we perform $k$ separate tests. A test for one outlier, a test for two outliers, ..., up to a test for $k$ outliers. Importantly, *$k$* is just the **maximum possible number of outliers you’re willing to test for** — it is not a commitment that there are exactly *$k$* outliers. Note that Rosner's test assumes that the data without the outliers approximately follows a Normal distribution!
 
 ### Step 2: Remove the most extreme point, recompute, and repeat
 The test works iteratively:  
