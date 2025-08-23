@@ -12,7 +12,7 @@ authors:
 author_notes:
 
 date: '2024-10-01'
-#doi: '10.5281/zenodo.14009748'
+doi: '10.5281/zenodo.14009748'
 
 # Schedule page publish date (NOT publication's date).
 publishDate: '2024-10-01'
