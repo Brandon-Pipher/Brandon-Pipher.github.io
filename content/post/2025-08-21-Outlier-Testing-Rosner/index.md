@@ -314,3 +314,48 @@ print("Outliers:", z[outliers])
     
     Outliers: [6.01 5.34 5.42]
 
+
+# Two-tailed versus One-tailed
+
+This implementation of Rosner's test is a two-tailed version. It can be easily adapted to one-tailed with only a few small changes.
+
+The first is the difference in how $p$ is defined:
+
+$$
+p =
+\begin{cases}
+1 - \frac{\alpha}{2(n-i+1)}, & \text{if two-tailed} \\
+1 - \frac{\alpha}{(n-i+1)}, & \text{if one-tailed}
+\end{cases}
+$$
+
+The next is with how $x_{(i)}$, and consequently $R_i$, is calculated:
+
+
+$$
+x_{(i)} =
+\begin{cases}
+\max_{j=1, …, n-i} \big|x_j^* - \bar{x}_{(i)}\big|, & \text{if two-tailed} \\
+x_{(\min)}, & \text{if left tailed} \\
+x_{(\max)}, & \text{if right tailed}
+\end{cases}
+$$
+
+$$
+R_{i} =
+\begin{cases}
+\frac{|x_{(i)} - \bar{x}_{(i)}|}{s_{(i)}}, & \text{if two-tailed} \\
+\frac{\bar{x}_{(i)} - x_{(\min)}}{s_{(i)}}, & \text{if left tailed} \\
+\frac{x_{(\max)} - \bar{x}_{(i)}}{s_{(i)}}, & \text{if right tailed}
+\end{cases}
+$$  
+
+Note that the change is only adjusting $p$ calculation to no longer divide by two (two-tail vs one) and then conditioning on the sign of the most extreme values we pick.
+
+# References
+
+The Rosner test is related to the Grubb's test and Tietjen-Moore test.
+
+- Grubbs, Frank (February 1969), Procedures for Detecting Outlying Observations in Samples, Technometrics, 11(1), pp. 1-21
+- Tietjen and Moore (August 1972), Some Grubbs-Type Statistics for the Detection of Outliers, Technometrics, 14(3), pp. 583-597. 
+- Rosner, Bernard (May 1983), Percentage Points for a Generalized ESD Many-Outlier Procedure,Technometrics, 25(2), pp. 165-172. 

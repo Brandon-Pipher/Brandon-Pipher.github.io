@@ -128,7 +128,7 @@ quick_column_summary(loans)
 ```
 
     Data EDA Summary
-    
+
 
 
 
@@ -372,14 +372,10 @@ fig = px.bar(
 )
 
 fig.write_image('fig1.png')
-display(Image(filename="fig1.png"))
+#display(Image(filename="fig1.png"))
 ```
 
-
-    
-![png](index_files/index_10_0.png)
-    
-
+![](fig1.png)
 
 
 ```python
@@ -560,7 +556,7 @@ for name, config in model_configs.items():
     
     Training dummy_prior...
     Fitting 10 folds for each of 1 candidates, totalling 10 fits
-    
+
 
 
 ```python
@@ -601,8 +597,10 @@ print(results_df)
     6                                                 {}  
     4                                                 {}  
     8                                                 {}  
-    
+
 
 Focusing on f1-score:
 
-We saw CATBOOST perform the best when training, but XGBOOST actually performed the best on the test data. The difference between their performance is due to CATBOOST making two additional false-negative predictions compared to XGBOOST.
+We saw CATBOOST perform the best when training, but XGBOOST actually performed the best on the test data. The difference between their performance is due to CATBOOST making one additional false-negative predictions compared to XGBOOST.
+
+Despite the imbalance nature of the dataset the models performed well.

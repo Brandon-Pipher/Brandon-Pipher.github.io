@@ -8,13 +8,94 @@ http://www.asasrms.org/Proceedings/y2023/files/HB_JSM_2023.pdf
 
 https://ssc.ca/sites/default/files/survey/documents/SSC2003_R_Belcher.pdf
 
+## Background
+
+The Hidiroglou‑Berthelot method, or HB‑edit, was introduced by Hidiroglou and Berthelot in 1986 to enhance outlier detection in periodic business surveys, particularly where units (e.g. companies, survey respondents) exhibit wide variations in size. Detecting outliers in survey data can be difficult due to the extreme variation in the size of respondents.
 
 
-# Background
+1. For each entity $i$, compute the **ratio** of its current value $x_i(t)$ to its previous value $x_i(t-1)$:  
 
-The HB-edit method was proposed by Hidroglou and Berthelot (1986) to improve on editting survey data conducted by Statistics Canada. Detecting outliers in survey data can be difficult due to the extreme variation in the size of respondents.
+   $$r_i = \frac{x_i(t)}{x_i(t-1)}$$
+
+2. Center these ratios around their **median** $r_{Q_2}$ or $r_{M}$ through a transformation generating $s_i$, which is symmetric around zero:  
+
+   $$
+   s_i =
+   \begin{cases}
+   1 - \frac{r_{Q_2}}{r_i}, & \text{if } 0 < r_i < r_{Q_2}, \\
+   \frac{r_i}{r_{Q_2}} - 1, & \text{if } r_i \geq r_{Q_2}
+   \end{cases}
+   $$
+
+
+Then, to account for the size of the observation the HB method creates an effector vector, $e_k$, by scaling the symmetric ratios as followis:
+
+3. Incorporate the **size** of the unit—by taking the maximum of $x_i(t)$ and $x_i(t-1)$, raised to the power of a tuning parameter $U$ (between 0 and 1)—to compute the **effect score**:  
+
+   $$E_i = s_i \times \bigl[\max(x_i(t), x_i(t-1))\bigr]^U, \text{ where } 0 \le u \le 1$$
+
+   - Larger units require smaller relative changes to be flagged as outliers.  
+   - Smaller units tolerate proportionally larger fluctuations.  
+
+4. Define outlier boundaries based on percentiles or quartiles of the $E_i$ distribution. Typically:  
+
+   $$[E_M - C \times d_{Q1},\; E_M + C \times d_{Q3}]$$
+
+   where:  
+   - $E_M$ is the median of $E_i$;  
+   - $d_{Q1} = \max(E_M - E_{Q1}, |A \times E_M|)$;  
+   - $d_{Q3} = \max(E_{Q3} - E_M, |A \times E_M|)$;  
+   - $A$ is a small constant (commonly 0.05);  
+   - $C$ scales how wide these bounds are (commonly 4–7).  
+
+Units whose $E_i$ fall outside this interval are flagged as outliers.
+
+## Why Is HB-edit Useful?
+
+- **Size-aware flexibility**: By incorporating unit size via $U$, the method adjusts tolerance for change.  
+- **Symmetric detection**: Captures both unusually large and unusually small changes.  
+- **Data-driven, nonparametric**: No strong distributional assumptions.  
+- **Adjustable sensitivity**: Parameters $U$, $A$, and $C$ allow analysts to tune sensitivity.
+
+## Assumptions & Practical Considerations
+
+**Key assumptions and caveats:**
+
+- Ratio-of-change distribution should be smooth and roughly symmetric.  
+- Parameter tuning requires care—defaults are often $U = 0.4$, $A = 0.05$, $C = 4$–7.  
+- Many identical ratios can cause quartile issues—percentiles (e.g. 10th & 90th) may work better.  
+- HB-edit is **univariate**; multivariate anomaly detection requires different methods.
+
+**Practical workflow:**
+
+1. Plot the distribution of $E_i$ scores.  
+2. Experiment with parameter values.  
+3. Use adjusted boxplots or other robust diagnostics.  
+4. Always review flagged outliers in context.
+
+## Summary Table: HB-edit Snapshot
+
+| Element              | Description |
+|----------------------|-------------|
+| **Ratio $r_i$**        | Change between periods |
+| **Centered $s_i$**     | Symmetric score around median |
+| **Effect $E_i$**       | Size-weighted score |
+| **Parameters**         | $U, A, C$ for tuning |
+| **Bounds**             | Median-based, robust intervals |
+| **Use Cases**          | Surveys, census, business data |
+| **Strengths**          | Size-aware, symmetric, flexible |
+| **Limitations**        | Needs tuning, univariate only |
+
+## Final Thoughts
+
+The **Hidiroglou-Berthelot (HB-edit) method** is a robust and interpretable tool for outlier detection—especially well-suited for longitudinal survey or administrative data where units vary widely in size. With careful parameter tuning and visualization, HB-edit highlights meaningful anomalies without overwhelming analysts with false positives.
+
+## Demonstration
 
 To demonstrate this method I am going to use the 2020 and 2010 Census tract-level population estimates. Code to create this dataset from the Census API is available here:
+
+<details>
+<summary>Click to view code</summary>
 
 ```python
 import requests
@@ -84,186 +165,7 @@ tracts["GEOID"] = tracts["state"].str.zfill(2) + tracts["county"].str.zfill(3) +
 # Reorder columns nicely
 tracts = tracts[["GEOID", "NAME", "state", "county", "tract", "POP_2010", "POP_2020"]]
 ```
-
-
-```python
-import pandas as pd
-df = pd.read_csv("census_tract_population_2010_2020.csv").dropna()
-df = df[(df["POP_2010"] > 0) & (df["POP_2020"] > 0)]
-df
-```
-
-
-
-
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>GEOID</th>
-      <th>NAME</th>
-      <th>state</th>
-      <th>county</th>
-      <th>tract</th>
-      <th>POP_2010</th>
-      <th>POP_2020</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>1001020100</td>
-      <td>Census Tract 201, Autauga County, Alabama</td>
-      <td>1</td>
-      <td>1</td>
-      <td>20100</td>
-      <td>1912.0</td>
-      <td>1775.0</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>1001020200</td>
-      <td>Census Tract 202, Autauga County, Alabama</td>
-      <td>1</td>
-      <td>1</td>
-      <td>20200</td>
-      <td>2170.0</td>
-      <td>2055.0</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>1001020300</td>
-      <td>Census Tract 203, Autauga County, Alabama</td>
-      <td>1</td>
-      <td>1</td>
-      <td>20300</td>
-      <td>3373.0</td>
-      <td>3216.0</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>1001020400</td>
-      <td>Census Tract 204, Autauga County, Alabama</td>
-      <td>1</td>
-      <td>1</td>
-      <td>20400</td>
-      <td>4386.0</td>
-      <td>4246.0</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>1001020600</td>
-      <td>Census Tract 206, Autauga County, Alabama</td>
-      <td>1</td>
-      <td>1</td>
-      <td>20600</td>
-      <td>3668.0</td>
-      <td>3729.0</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>96906</th>
-      <td>72153750501</td>
-      <td>Census Tract 7505.01, Yauco Municipio, Puerto ...</td>
-      <td>72</td>
-      <td>153</td>
-      <td>750501</td>
-      <td>4960.0</td>
-      <td>3968.0</td>
-    </tr>
-    <tr>
-      <th>96907</th>
-      <td>72153750502</td>
-      <td>Census Tract 7505.02, Yauco Municipio, Puerto ...</td>
-      <td>72</td>
-      <td>153</td>
-      <td>750502</td>
-      <td>2092.0</td>
-      <td>1845.0</td>
-    </tr>
-    <tr>
-      <th>96908</th>
-      <td>72153750503</td>
-      <td>Census Tract 7505.03, Yauco Municipio, Puerto ...</td>
-      <td>72</td>
-      <td>153</td>
-      <td>750503</td>
-      <td>2357.0</td>
-      <td>2155.0</td>
-    </tr>
-    <tr>
-      <th>96909</th>
-      <td>72153750601</td>
-      <td>Census Tract 7506.01, Yauco Municipio, Puerto ...</td>
-      <td>72</td>
-      <td>153</td>
-      <td>750601</td>
-      <td>5315.0</td>
-      <td>4368.0</td>
-    </tr>
-    <tr>
-      <th>96910</th>
-      <td>72153750602</td>
-      <td>Census Tract 7506.02, Yauco Municipio, Puerto ...</td>
-      <td>72</td>
-      <td>153</td>
-      <td>750602</td>
-      <td>3141.0</td>
-      <td>2587.0</td>
-    </tr>
-  </tbody>
-</table>
-<p>61877 rows × 7 columns</p>
-</div>
-
-
-
-Create vector of ratios, $r_k$, by dividing the current estimates by the prior:
-
-$$r_k = \frac{y_k}{x_k}; k=1,2,\cdots,n$$
-
-where $n$ is the number of observation units.
-
-
-To detect outleirs in both tails the HB method applies a centering transformation to produce non-negative and symmetric transformed ratios, $s_k$:
-$$
-s_k =
-\begin{cases}
-1 - \dfrac{r_{Q_2}}{r_k}, & \text{if } 0 < r_k < r_{Q_2} \\
-\dfrac{r_k}{r_{Q_2}} - 1, & \text{otherwise}
-\end{cases}
-$$
-
-where $r_{Q_2}$ is the median of $r_k$.
-
-Then, to account for the size of the observation the HB method creates an effector vector, $e_k$, by scaling the symmetric ratios as followis:
-
-$$
-e_k = s_k \max(x_k, y_k)^u, \text{ where } 0 \le u \le 1
-$$
+</details>
 
 
 ```python
@@ -349,6 +251,11 @@ def hidiroglou_berthelot_outliers(y_k, x_k, u = 0.5, a = 0.05, c = 4, quantile_l
 ```python
 import plotly.express as px
 from IPython.display import Image, display
+import pandas as pd
+
+df = pd.read_csv("census_tract_population_2010_2020.csv").dropna()
+df = df[(df["POP_2010"] > 0) & (df["POP_2020"] > 0)]
+
 df["hb_edit_outliers"] = hidiroglou_berthelot_outliers(
     df["POP_2020"],
     df["POP_2010"],
@@ -362,12 +269,12 @@ fig = px.scatter(
     title = "Census Tract Population - 2020 versus 2010"
 )
 fig.write_image('fig1.png')
-display(Image(filename="fig1.png"))
+#display(Image(filename="fig1.png"))
 #fig.show()
 ```
 
+![](fig1.png)
 
-    
-![png](index_files/index_6_0.png)
-    
+## References
 
+- Hidiroglou, M.A., and Berthelot, J.-M. (1986). ”Statistical Editing and Imputation for Periodic Business Surveys”. Survey Methodology, 12, 73-83.
