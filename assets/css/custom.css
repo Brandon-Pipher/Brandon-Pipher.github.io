@@ -1,0 +1,7 @@
+/* Reduce font size of all code blocks */
+pre code, pre {
+  font-size: 0.80rem !important; /* adjust to taste */
+  /*white-space: pre-wrap !important;  /* allow wrapping */
+  /*word-break: break-word;            /* break long tokens */
+}
+
