@@ -57,9 +57,8 @@ education:
     date_start: 2017-08-01
     date_end: 2019-12-01
     summary: |
-      My studies included measure-theoretic probability and statistical computing.
-      
-      My research was on regression methods to induce sparsity, with a focus on non-convex methodologies.
+      - Studies included measure-theoretic probability and statistical computing.
+      - Researched regression methods for high-dimensional data, focusing on non-convex penalties to improve variable selection and prediction accuracy.
     button:
         text: 'Read Thesis'
         url: 'http://rave.ohiolink.edu/etdc/view?acc_num=kent1573056251025985'
@@ -68,7 +67,7 @@ education:
     date_start: 2013-08-01
     date_end: 2017-05-01
     summary: |
-      My studies included topics in real analysis and abstract algebra.
+      - Studies included topics in real analysis and abstract algebra.
       - Member of Phi Sigma Alpha: Buchtel College of Arts and Sciences Scholastic Honorary Society
       - Member and Treasurer of Pi Mu Epsilon: Mathematics Honorary Society (Ohio Nu Chapter)
 
@@ -81,9 +80,10 @@ work:
     date_end: ''
     summary: |
       Responsibilities include:
-      - Lead research and methodology design for the 2030 Census Coverage Estimation program, driving data-driven projects that apply advanced statistical and machine learning techniques within the Decennial Statistical Studies Division. Develop tract-level person and housing unit estimation methods, build outlier-detection frameworks, and apply graph-theoretic models to leverage household structures from administrative records for improved population estimates.
-      - Advance intercensal population estimation through the <a href="https://www.census.gov/about/adrm/linkage/projects/continuous-count-study.html">Continuous Count Study</a> by integrating Census products, commercial datasets, and government administrative records. Apply innovative statistical methods—including Log-Linear and Latent Class modeling—for imputation, and presented findings at the <a href="https://zenodo.org/records/14009748">2024 Joint Statistical Meetings</a> and the 2024 Federal Committee on Statistical Methodology.
-      - Developed and implemented statistical programming for the <a href="https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/national-census-coverage-estimates-by-demographic-characteristics.pdf">2020 Post-Enumeration Survey (PES)</a>, creating an in-mover probability imputation model and applying advanced feature-selection techniques to enhance coverage estimate accuracy.
+      - Conducted research and methodology design for the 2030 Census Coverage Estimation program. Lead data-driven projects within the Decennial Statistical Studies Division that applied statistical and machine learning techniques to evaluate and improve the quality of the decennial census.
+      - Developed tract-level person and living-quarters population estimates for coverage estimation by leveraging administrative records; designed and implemented anomaly-detection and quality control frameworks; applied graph-theoretic models leveraging household structures to improve estimation accuracy.
+      - Advanced intercensal population estimation through the <a href="https://www.census.gov/about/adrm/linkage/projects/continuous-count-study.html">Continuous Count Study</a>  by integrating Census, commercial, and government-wide datasets. Applied log-linear and latent class modeling for characteristic imputation when implementing multiple-systems estimation. Presented findings at the <a href="https://zenodo.org/records/14009748">2024 Joint Statistical Meetings</a> and the 2024 Federal Committee on Statistical Methodology. 
+      - Provided statistical programming for the <a href="https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/national-census-coverage-estimates-by-demographic-characteristics.pdf">2020 Post-Enumeration Survey (PES)</a>. Developed the in-mover probability imputation model using large-scale feature selection techniques to identify key covariates for estimation.
 
   - position: Quantitative Analyst
     company_name: Nations Lending
