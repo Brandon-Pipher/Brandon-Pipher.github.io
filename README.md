@@ -3,7 +3,8 @@ https://gohugo.io/
 
 https://hugoblox.com/
 
-# Set up
+# Getting Started on windows
+
 Steps are more specifically tailored to windows and are easier on linux. I leverage git bash for windows.
 
 Install Git, Go and Hugo (easy using winget).  All of this can be ran from VS Code Powershell Terminal (not Windows Powershell).
@@ -12,11 +13,11 @@ Remember to verify that ~/.bashrc has the following if using windows git bash to
     source "C:\Program Files\Git\mingw64\share\git\completion\git-prompt.sh"
     source "C:\Users\bppipher\anaconda3\etc\profile.d\conda.sh"
 
-Clone theme repository (theme-academic-cv from hugoblox).
+Clone theme repository (I started with theme-academic-cv from hugoblox).
 
-Use 'hugo' to set up and 'hugo server -D' to serve locally with draft posts. Hugo server needs to be correct to work. Check version built with in hugoblox.yaml
+Use 'hugo' to set up and 'hugo server -D' to serve locally with draft posts. Hugo server needs to be the correct version to work. Check the version the site template was built with in hugoblox.yaml
 
-Pull ./.github/workflows/import-notebooks.yml from another repo and create ./notebooks/ directory. Allows ipynb conversions.
+Pull ./.github/workflows/import-notebooks.yml from another repo and create ./notebooks/ directory. Allows ipynb conversions. Or just render them manually.
 
 Needs a .gitignore to be created.
 
@@ -38,3 +39,7 @@ Will also need `go` and `nodejs` and is easily installed using snap:
 sudo snap install --classic go
 sudo snap install --classic node
 ```
+
+# Pagefind
+
+npx pagefind --site "public" --output-subdir ../static/pagefind

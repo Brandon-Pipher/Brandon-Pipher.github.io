@@ -1,0 +1,12 @@
+<details class="ref">
+  <summary class="ref__summary">
+    {{ .Get "title" }}{{ with .Get "by" }} — {{ . }}{{ end }}
+    {{ with .Get "url" }}
+      <a class="ref__ext" href="{{ . }}" target="_blank" rel="noopener">↗</a>
+    {{ end }}
+  </summary>
+
+  <div class="ref__body">
+    {{ .Inner | markdownify }}
+  </div>
+</details>

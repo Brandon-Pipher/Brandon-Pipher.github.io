@@ -6,8 +6,9 @@
 
 imports:
   - path: github.com/HugoBlox/hugo-blox-builder/modules/blox-plugin-netlify
+    version: v1.1.2-0.20250301201144-44e75541f7be
   - path: github.com/HugoBlox/hugo-blox-builder/modules/blox-tailwind
-
+    version: v0.3.2
 # Install any Hugo Blox within the `hugo-blox/blox/` folder
 mounts:
   - source: hugo-blox/blox/community
