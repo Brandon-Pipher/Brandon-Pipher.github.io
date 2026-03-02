@@ -80,10 +80,11 @@ work:
     date_end: ''
     summary: |
       Responsibilities include:
-      - Conducted research and methodology design for the 2030 Census Coverage Estimation program. Lead data-driven projects within the Decennial Statistical Studies Division that applied statistical and machine learning techniques to evaluate and improve the quality of the decennial census.
-      - Developed tract-level person and living-quarters population estimates for coverage estimation by leveraging administrative records; designed and implemented anomaly-detection and quality control frameworks; applied graph-theoretic models leveraging household structures to improve estimation accuracy.
-      - Advanced intercensal population estimation through the <a href="https://www.census.gov/about/adrm/linkage/projects/continuous-count-study.html">Continuous Count Study</a>  by integrating Census, commercial, and government-wide datasets. Applied log-linear and latent class modeling for characteristic imputation when implementing multiple-systems estimation. Presented findings at the <a href="https://zenodo.org/records/14009748">2024 Joint Statistical Meetings</a> and the 2024 Federal Committee on Statistical Methodology. 
-      - Provided statistical programming for the <a href="https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/national-census-coverage-estimates-by-demographic-characteristics.pdf">2020 Post-Enumeration Survey (PES)</a>. Developed the in-mover probability imputation model using large-scale feature selection techniques to identify key covariates for estimation.
+      - Conducted research and methodology design for the Census Coverage Estimation program, leading data-driven projects within the Decennial Statistical Studies Division that applied statistical and machine learning techniques to evaluate and improve the quality and operational efficiency of the decennial census.
+      - Researched small-area population and living quarters estimation methods for 2030 Coverage Estimation, leveraging statistical models with population-level administrative records. Designed and implemented anomaly-detection and quality control frameworks.
+      - Advanced intercensal population estimation through the <a href="https://www.census.gov/about/adrm/linkage/projects/continuous-count-study.html">Continuous Count Study</a>  by integrating Census, commercial, and government-wide datasets. Applied log-linear and latent class modeling for characteristic imputation when implementing multiple-systems estimation. Developed dual-system estimation methodologies using the American Community Survey and administrative records.
+      - Developed machine-learning models for the <a href="https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/national-census-coverage-estimates-by-demographic-characteristics.pdf">2020 Post-Enumeration Survey (PES)</a> creating large-scale feature selection and imputation pipelines.
+  # - Provided statistical programming for the <a href="https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/national-census-coverage-estimates-by-demographic-characteristics.pdf">2020 Post-Enumeration Survey (PES)</a>. Developed the in-mover probability imputation model using large-scale feature selection techniques to identify key covariates for estimation.
 
   - position: Quantitative Analyst
     company_name: Nations Lending
@@ -93,10 +94,14 @@ work:
     date_end: 2021-07-01
     summary: |
       Responsibilities include:
-      - Partnered with Risk Management, Compliance, and Product teams to create automated reports and dashboards, providing insights on KPIs and OKRs using statistical modeling and data science techniques.
-      - Delivered high-impact analytical summaries to senior leadership, developing flexible reporting solutions to drive strategic decision-making and monitor performance indicators.
-      - Designed time series forecasting models leveraging public data to predict quarterly mortgage loan origination volume, optimizing workforce allocation and reducing operational costs.
-      - Applied Natural Language Processing to analyze mortgage process documentation, uncovering bottlenecks and reducing closing times through machine learning-based workflow improvements.
+      - Partnered cross-functionally with Product, Risk Management, and Compliance to translate statistical modeling and data analysis into KPI and OKR insights through automated reporting and dashboard solutions.
+      - Delivered executive-level summaries to senior leadership, developing flexible reporting solutions to drive strategic decision-making and monitor performance indicators.
+      - Designed time series ARIMAX forecasting models leveraging public economic data to predict quarterly loan origination volume, optimizing workforce allocation and reducing operational costs.
+      - Utilized natural language processing and text mining to analyze unstructured mortgage process documentation, uncovering operational bottlenecks and driving data-informed workflow optimizations that reduced loan closing times.
+  # - Partnered with Risk Management, Compliance, and Product teams to create automated reports and dashboards, providing insights on KPIs and OKRs using statistical modeling and data science techniques.
+  # - Delivered high-impact analytical summaries to senior leadership, developing flexible reporting solutions to drive strategic decision-making and monitor performance indicators.
+  # - Designed time series forecasting models leveraging public data to predict quarterly mortgage loan origination volume, optimizing workforce allocation and reducing operational costs.
+  # - Applied Natural Language Processing to analyze mortgage process documentation, uncovering bottlenecks and reducing closing times through machine learning-based workflow improvements.
 
 # Skills
 # Add your own SVG icons to `assets/media/icons/`
