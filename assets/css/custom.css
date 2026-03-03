@@ -5,3 +5,6 @@ pre code, pre {
   /*word-break: break-word;            /* break long tokens */
 }
 
+.max-w-screen-xl {
+  max-width: 94rem !important; // try 88rem, 90rem, or 94rem
+}
