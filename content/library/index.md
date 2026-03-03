@@ -114,6 +114,44 @@ Each item (hopefully) expands to include personal notes, summaries, and commenta
 - The ubiquitous platform for data structure practice.
 {{< /ref >}}
 
+{{< ref title="Distill (Defunct)" by="" url="https://distill.pub/" >}}
+- No longer updated!
+- A compelling case for interactivity in articles and visualizations.
+- Leverages D3.js
+{{< /ref >}}
+
+## Visuals
+
+{{< ref title="Python Graph Gallery" by="" url="https://python-graph-gallery.com/" >}}
+{{< /ref >}}
+
+{{< ref title="R Graph Gallery" by="" url="https://r-graph-gallery.com" >}}
+{{< /ref >}}
+
+{{< ref title="Seaborn Gallery" by="" url="https://seaborn.pydata.org/examples/" >}}
+{{< /ref >}}
+
+{{< ref title="Altair Gallery" by="" url="https://altair-viz.github.io/gallery/" >}}
+{{< /ref >}}
+
+{{< ref title="Matplotlib Gallery" by="" url="https://matplotlib.org/stable/gallery/" >}}
+{{< /ref >}}
+
+{{< ref title="Plotly Gallery" by="" url="https://plotly.com/python/" >}}
+{{< /ref >}}
+
+{{< ref title="Flourish" by="" url="https://flourish.studio/examples/" >}}
+{{< /ref >}}
+
+{{< ref title="Observable" by="" url="https://observablehq.com/" >}}
+{{< /ref >}}
+
+{{< ref title="The Data Visualization Catalogue" by="" url="https://datavizcatalogue.com/" >}}
+{{< /ref >}}
+
+{{< ref title="from Data to Viz" by="" url="https://www.data-to-viz.com/" >}}
+{{< /ref >}}
+
 ## Papers
 For a reminder that things are more modern than you might expect.
 
