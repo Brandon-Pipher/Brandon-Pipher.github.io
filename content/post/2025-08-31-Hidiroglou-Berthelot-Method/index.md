@@ -24,9 +24,9 @@ The Hidiroglou‑Berthelot method, or HB‑edit, was introduced by Hidiroglou an
    $$
 
 
-Then, to account for the size of the observation the HB method creates an effects vector, $_i$, by scaling the symmetric ratios as follows:
+Then, to account for the size of the observation the HB method creates an effects vector, $e_i$, by scaling the symmetric ratios as follows:
 
-3. Incorporate the **size** of the unit—by taking the maximum of $x_i(t)$ and $x_i(t-1)$, raised to the power of a tuning parameter $U$ (between 0 and 1)—to compute the **effect score**:  
+3. Incorporate the **size** of the unit—by taking the maximum of $x_i(t)$ and $x_i(t-1)$, raised to the power of a tuning parameter $u$ (between 0 and 1)—to compute the **effect score**:  
 
    $$e_i = s_i \times \bigl[\max(x_i(t), \ x_i(t-1))\bigr]^u, \text{ where } 0 \le u \le 1$$
 
@@ -52,7 +52,7 @@ Units whose $e_i$ fall outside this interval are flagged as outliers.
 
 ## Why Is HB-edit Useful?
 
-- **Size-aware flexibility**: By incorporating unit size via $U$, the method adjusts tolerance for change.  
+- **Size-aware flexibility**: By incorporating unit size via $u$, the method adjusts tolerance for change.  
 - **Symmetric detection**: Captures both unusually large and unusually small changes.  
 - **Data-driven, nonparametric**: No strong distributional assumptions.  
 - **Adjustable sensitivity**: Parameters $u$, $a$, and $c$ allow analysts to tune sensitivity.
@@ -279,13 +279,11 @@ plt.ylabel("Population 2020")
 plt.legend(title="HB Edit Outlier")
 plt.tight_layout()
 
+plt.savefig("census_scatter.png")
+plt.close()
 ```
 
-
-    
-![png](index_files/index_4_0.png)
-    
-
+![Census Tract Population Scatter](census_scatter.png)
 
 ## An Object-Oriented Estimator
 
