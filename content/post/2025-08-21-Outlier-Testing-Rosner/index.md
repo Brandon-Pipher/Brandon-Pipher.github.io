@@ -46,11 +46,19 @@ Each method has trade-offs, and without rigorous subject matter expertise many i
 
 ## GESD (Rosner’s Generalized Extreme Studentized Deviate Test)
 
+### Assumptions 
+
+Rosner’s generalized ESD test assumes that the non‑outlier portion of the data is approximately normally distributed. If this assumption is violated, the test’s Type I error rate and critical values may be unreliable. One way to assess this normality is a QQ-plot. For the purposes of this test, deviations in the tails are less critical than deviations in the central bulk of the data.
 
 ### Step 1: Defining our Hypothesis Test
 Let’s say we have $n$ observations, $x_1, x_2, ... , x_n$. Given an upper bound on the maximum number of outliers, $k$, we perform $k$ separate tests. A test for one outlier, a test for two outliers, ..., up to a test for $k$ outliers. Importantly, *$k$* is just the **maximum possible number of outliers you’re willing to test for** — it is not a commitment that there are exactly *$k$* outliers.
 
-Note that Rosner's test is parametric and assumes that the data, without the outliers, approximately follows a Normal distribution.
+More formally written:
+
+Given $n$ observations and a user‑specified maximum number of suspected outliers, $k$, Rosner’s test evaluates hypotheses:
+- $H_0$: No Outliers
+- $H_a$: Up to $k$ outliers
+
 
 ### Step 2: Remove the most extreme point, recompute, and repeat
 The test works iteratively:  

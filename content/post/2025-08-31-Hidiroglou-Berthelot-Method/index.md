@@ -4,20 +4,16 @@ title: "Anomaly Detection: Hidiroglou-Berthelot or HB-edit"
 draft: false
 toc: false 
 ---
-http://www.asasrms.org/Proceedings/y2023/files/HB_JSM_2023.pdf
-
-https://ssc.ca/sites/default/files/survey/documents/SSC2003_R_Belcher.pdf
-
 ## Background
 
-The Hidiroglou‑Berthelot method, or HB‑edit, was introduced by Hidiroglou and Berthelot in 1986 to enhance outlier detection in periodic business surveys, particularly where units (e.g. companies, survey respondents) exhibit wide variations in size. Detecting outliers in survey data can be difficult due to the extreme variation in the size of respondents.
+The Hidiroglou‑Berthelot method, or HB‑edit, was introduced by Hidiroglou and Berthelot in 1986 to enhance outlier detection in periodic business surveys, particularly where units (e.g. companies, survey respondents) exhibit wide variations in size. Detecting outliers in survey data can be difficult due to the extreme variation in the size of respondents. Traditional methods with fixed-thresholds like z-scores or IQR can fail because they ignore scale heterogeneity.
 
 
 1. For each entity $i$, compute the **ratio** of its current value $x_i(t)$ to its previous value $x_i(t-1)$:  
 
    $$r_i = \frac{x_i(t)}{x_i(t-1)}$$
 
-2. Center these ratios around their **median** $r_{Q_2}$ or $r_{M}$ through a transformation generating $s_i$, which is symmetric around zero:  
+2. Center these ratios around their **median** $r_{Q_2}$ (also referred as $r_{M}$) through a transformation generating $s_i$, which becomes symmetric around zero. This transformation expresses deviation from the median ratio on a symmetric scale, where 0 represents 'typical' change.
 
    $$
    s_i =
@@ -28,47 +24,51 @@ The Hidiroglou‑Berthelot method, or HB‑edit, was introduced by Hidiroglou an
    $$
 
 
-Then, to account for the size of the observation the HB method creates an effector vector, $e_k$, by scaling the symmetric ratios as followis:
+Then, to account for the size of the observation the HB method creates an effects vector, $_i$, by scaling the symmetric ratios as follows:
 
 3. Incorporate the **size** of the unit—by taking the maximum of $x_i(t)$ and $x_i(t-1)$, raised to the power of a tuning parameter $U$ (between 0 and 1)—to compute the **effect score**:  
 
-   $$E_i = s_i \times \bigl[\max(x_i(t), x_i(t-1))\bigr]^U, \text{ where } 0 \le u \le 1$$
+   $$e_i = s_i \times \bigl[\max(x_i(t), \ x_i(t-1))\bigr]^u, \text{ where } 0 \le u \le 1$$
 
    - Larger units require smaller relative changes to be flagged as outliers.  
    - Smaller units tolerate proportionally larger fluctuations.  
 
-4. Define outlier boundaries based on percentiles or quartiles of the $E_i$ distribution. Typically:  
+This is the core innovation of HB-edit. It couples relative change with unit size.
 
-   $$[E_M - C \times d_{Q1},\; E_M + C \times d_{Q3}]$$
+4. Define outlier boundaries based on percentiles of the $e_i$ distribution. Typically:  
+
+   $$[e_M - c \times d_{Q1},\; e_M + c \times d_{Q3}]$$
 
    where:  
-   - $E_M$ is the median of $E_i$;  
-   - $d_{Q1} = \max(E_M - E_{Q1}, |A \times E_M|)$;  
-   - $d_{Q3} = \max(E_{Q3} - E_M, |A \times E_M|)$;  
-   - $A$ is a small constant (commonly 0.05);  
-   - $C$ scales how wide these bounds are (commonly 4–7).  
+   - $e_{M}$ is the median of $e_i$;  
+   - $e_{Q1}$ is the first quartile of $e_i$
+   - $e_{Q3}$ is the third quartile of $e_i$
+   - $a$ is a small constant (commonly 0.05)
+   - $c$ scales how wide these bounds are (commonly 4–7)
+   - $d_{Q1} = \max(e_{M} - e_{Q1}, | a \times e_{M}|)$
+   - $d_{Q3} = \max(e_{Q3} - e_{M}, | a \times e_{M}|)$
 
-Units whose $E_i$ fall outside this interval are flagged as outliers.
+Units whose $e_i$ fall outside this interval are flagged as outliers.
 
 ## Why Is HB-edit Useful?
 
 - **Size-aware flexibility**: By incorporating unit size via $U$, the method adjusts tolerance for change.  
 - **Symmetric detection**: Captures both unusually large and unusually small changes.  
 - **Data-driven, nonparametric**: No strong distributional assumptions.  
-- **Adjustable sensitivity**: Parameters $U$, $A$, and $C$ allow analysts to tune sensitivity.
+- **Adjustable sensitivity**: Parameters $u$, $a$, and $c$ allow analysts to tune sensitivity.
 
 ## Assumptions & Practical Considerations
 
 **Key assumptions and caveats:**
-
+- It assumes the values $x_i(t)$ and $x_i(t-1)$ are temporally comparable, or at least correlated
 - Ratio-of-change distribution should be smooth and roughly symmetric.  
-- Parameter tuning requires care—defaults are often $U = 0.4$, $A = 0.05$, $C = 4$–7.  
+- Parameter tuning requires care—defaults are often $u = 0.4$, $a = 0.05$, $c = 4$–7.  
 - Many identical ratios can cause quartile issues—percentiles (e.g. 10th & 90th) may work better.  
 - HB-edit is **univariate**; multivariate anomaly detection requires different methods.
 
 **Practical workflow:**
 
-1. Plot the distribution of $E_i$ scores.  
+1. Plot the distribution of $e_i$ scores.  
 2. Experiment with parameter values.  
 3. Use adjusted boxplots or other robust diagnostics.  
 4. Always review flagged outliers in context.
@@ -79,10 +79,10 @@ Units whose $E_i$ fall outside this interval are flagged as outliers.
 |----------------------|-------------|
 | **Ratio $r_i$**        | Change between periods |
 | **Centered $s_i$**     | Symmetric score around median |
-| **Effect $E_i$**       | Size-weighted score |
-| **Parameters**         | $U, A, C$ for tuning |
+| **Effect $e_i$**       | Size-weighted score |
+| **Parameters**         | $u, a, c$ for tuning |
 | **Bounds**             | Median-based, robust intervals |
-| **Use Cases**          | Surveys, census, business data |
+| **Use Cases**          | Surveys, business data |
 | **Strengths**          | Size-aware, symmetric, flexible |
 | **Limitations**        | Needs tuning, univariate only |
 
@@ -92,7 +92,7 @@ The **Hidiroglou-Berthelot (HB-edit) method** is a robust and interpretable tool
 
 ## Demonstration
 
-To demonstrate this method I am going to use the 2020 and 2010 Census tract-level population estimates. Code to create this dataset from the Census API is available here:
+To demonstrate this method I am going to use the 2020 and 2010 Census tract-level population estimates. Code to create this dataset from the Census API is available in the spoiler below:
 
 <details>
 <summary>Click to view code</summary>
@@ -249,9 +249,9 @@ def hidiroglou_berthelot_outliers(y_k, x_k, u = 0.5, a = 0.05, c = 4, quantile_l
 
 
 ```python
-import plotly.express as px
-from IPython.display import Image, display
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 df = pd.read_csv("census_tract_population_2010_2020.csv").dropna()
 df = df[(df["POP_2010"] > 0) & (df["POP_2020"] > 0)]
@@ -259,22 +259,203 @@ df = df[(df["POP_2010"] > 0) & (df["POP_2020"] > 0)]
 df["hb_edit_outliers"] = hidiroglou_berthelot_outliers(
     df["POP_2020"],
     df["POP_2010"],
-    u = 0.5, a = 0.05, c = 10, quantile_lo = 0.1, quantile_hi = 0.9
+    u=0.5, a=0.05, c=10, quantile_lo=0.1, quantile_hi=0.9
 )
-fig = px.scatter(
-    df,
-    x = "POP_2010",
-    y = "POP_2020",
-    color = "hb_edit_outliers",
-    title = "Census Tract Population - 2020 versus 2010"
+
+plt.figure(figsize=(8, 6))
+
+sns.scatterplot(
+    data=df,
+    x="POP_2010",
+    y="POP_2020",
+    hue="hb_edit_outliers",
+    alpha=0.7
 )
-fig.write_image('fig1.png')
-#display(Image(filename="fig1.png"))
-#fig.show()
+
+plt.title("Census Tract Population - 2020 versus 2010")
+plt.xlabel("Population 2010")
+plt.ylabel("Population 2020")
+
+plt.legend(title="HB Edit Outlier")
+plt.tight_layout()
+
 ```
 
-![](fig1.png)
+
+    
+![png](index_files/index_4_0.png)
+    
+
+
+## An Object-Oriented Estimator
+
+In the code below you can find the source for a python object with the additional capability of returning the bounds for plotting or evaluating your parameter choices.
+
+<details>
+<summary>Click to view code</summary>
+
+```python
+import numpy as np
+class HidiroglouBerthelotOutlierDetector:
+    """
+    Hidiroglou-Berthelot Method (...) for Outliers.
+
+    Parameters
+    ----------
+    y_k : 1D data
+        Data to test. Numerator.
+    x_k : 1D data
+        Data to test. Denominator.
+    u : float, default=0.50
+        Parameter. Controls curve of final boundaries. Commonly (u = 0.50)
+    a : float, default=0.05
+        Parameter. Ensures upper and ower bounds are not arbitrarily close to the median. (a = 0.05)
+    c : float, default=4
+        Parameter. Controls the width of the acceptance region. (c = 4)
+    Q1 : float, default=0.25
+        Upper quantile for effects vector (usually 0.25, alternative is 0.10).
+    Q3 : float, default=0.75
+        Upper quantile for effects vector (usually 0.75, alternative is 0.90).
+
+    Returns
+    -------
+    outliers : ndarray of bool, shape (n,)
+        Boolean mask indicating which points in `data` are considered outliers. 
+        True for detected outliers, False otherwise (including NaNs).
+
+    References
+    ----------
+    Hidiroglou, M.A., and Berthelot, J.-M. (1986). "Statistical Editing and Imputation for Periodic Business Surveys". Survey Methodology, 12, 73-83.
+    Winkler, McDowney, Cowles, Yildiz1, Steiner and Mukhopadhyay. "Evaluating the Hidiroglou-Berthelot Method for Survey Data Collected by the US EIA"
+    Belcher (2003). "APPLICATION OF THE HIDIROGLOU-BERTHELOT METHOD OF OUTLIER DETECTION FOR PERIODIC BUSINESS SURVEYS"
+    https://www150.statcan.gc.ca/n1/en/pub/12-001-x/1986001/article/14442-eng.pdf?st=GapZFThG
+    https://ssc.ca/sites/default/files/survey/documents/SSC2003_R_Belcher.pdf
+    http://www.asasrms.org/Proceedings/y2023/files/HB_JSM_2023.pdf
+    """
+    def __init__(self, u=0.5, a=0.05, c=4, Q1=0.25, Q3=0.75):
+        """
+        Initialize detector parameters.
+        """
+        self.u = u
+        self.a = a
+        self.c = c
+        self.Q1 = Q1
+        self.Q3 = Q3
+
+        # Attributes to be set during fit
+        self.outliers = None
+        self.r_M = None
+        self.LB = None
+        self.UB = None
+        self.e_Q1 = None
+        self.e_Q2 = None
+        self.e_Q3 = None
+        self.s_k = None
+        self.e_k = None
+        # Attributes to be set during bounds
+        self.bounds_lower = None
+        self.bounds_upper = None
+
+    def fit(self, y_k, x_k):
+        """
+        Fit the model and detect outliers.
+        """
+        y_k = np.array(y_k).astype(float)
+        x_k = np.array(x_k).astype(float)
+
+        # Check length
+        if y_k.shape[0] != x_k.shape[0]:
+            raise ValueError(f"y_k and x_k must be the same length. Got lengths: {len(y_k)} and {len(x_k)}")
+
+        # Ignore NaNs and zeros
+        valid = (x_k != 0) & (y_k != 0) & ~np.isnan(x_k) & ~np.isnan(y_k)
+
+        # Ratio
+        r_k = y_k[valid] / x_k[valid]
+
+        # Ratio Median
+        r_Q2 = np.quantile(r_k, 0.50)
+
+        # Centering transformation
+        s_k = np.where(
+            (r_k < r_Q2) & (r_k > 0),
+            1 - (r_Q2 / r_k), # 0 < r_k < r_Q2
+            (r_k / r_Q2) - 1  # Otherwise
+        )
+
+        # Effects vector
+        e_k = s_k * np.maximum(x_k[valid], y_k[valid])**self.u
+        
+        e_Q1 = np.quantile(e_k, self.Q1) 
+        e_Q2 = np.quantile(e_k, 0.50) 
+        e_Q3 = np.quantile(e_k, self.Q3) 
+
+        # Upper and Lower HB Bounds
+        bound_lo = e_Q2 - self.c * max(e_Q2 - e_Q1, np.abs(self.a * e_Q2))
+        bound_hi = e_Q2 + self.c * max(e_Q3 - e_Q2, np.abs(self.a * e_Q2))
+
+        # Masks effects vectors as outliers
+        outlier_effects = (e_k < bound_lo) | (e_k > bound_hi)
+
+        # Creates mask like original length of data
+        outliers = np.full_like(x_k, False, dtype = bool)
+        outliers[valid] = outlier_effects
+
+        self.outliers = outliers
+        self.r_M = r_Q2
+        self.LB = bound_lo
+        self.UB = bound_hi
+
+        self.e_k  = e_k
+        self.s_k  = s_k
+        self.e_Q1 = e_Q1
+        self.e_Q2 = e_Q2
+        self.e_Q3 = e_Q3
+
+        return self
+
+    def get_bounds(self, denominator, tol = 1, max_iter = 100, verbose = False):
+        """
+        Calculate upper and lower HB bounds for a given denominator vector.
+        """
+        if (self.r_M is None) or (self.LB is None) or (self.UB is None):
+            raise ValueError("Must fit detector before calculating bounds.")
+
+        denominator = np.array(denominator).astype(float)
+
+        # Lower Boundary
+        boundary_lower = self.r_M * (denominator) / (1 - (self.LB/(denominator)**self.u) )
+
+        # Upper Boundary
+        x_n = denominator # init
+        for iter in range(max_iter):
+            f_x  = (
+                ( x_n**(self.u+1) ) 
+                - ( denominator * self.r_M * (x_n**self.u) ) 
+                - ( self.UB * denominator * self.r_M ) 
+            )
+            f1_x = (
+                ( (self.u + 1) * (x_n**self.u) ) 
+                - ( self.u * denominator * self.r_M * (x_n**(self.u - 1)) )
+            )
+            x_n1 = x_n - (f_x / f1_x)
+
+            diff = np.max(np.abs(x_n1 - x_n))
+            x_n = x_n1 # next iter
+            if diff <= tol:
+                break
+        boundary_upper = x_n
+        #
+        if verbose:
+            print(f"Final tol was {diff:,.2f} after {iter} iterations.")
+        self.bounds_lower = boundary_lower
+        self.bounds_upper = boundary_upper
+
+        return self
+```
 
 ## References
 
-- Hidiroglou, M.A., and Berthelot, J.-M. (1986). ”Statistical Editing and Imputation for Periodic Business Surveys”. Survey Methodology, 12, 73-83.
+- [Hidiroglou, M.A., and Berthelot, J.-M. (1986). "Statistical Editing and Imputation for Periodic Business Surveys". Survey Methodology, 12, 73-83.](https://www150.statcan.gc.ca/n1/en/pub/12-001-x/1986001/article/14442-eng.pdf?st=GapZFThG)
+- [Winkler, McDowney, Cowles, Yildiz1, Steiner and Mukhopadhyay. "Evaluating the Hidiroglou-Berthelot Method for Survey Data Collected by the US EIA"](https://ssc.ca/sites/default/files/survey/documents/SSC2003_R_Belcher.pdf)
+- [Belcher (2003). "APPLICATION OF THE HIDIROGLOU-BERTHELOT METHOD OF OUTLIER DETECTION FOR PERIODIC BUSINESS SURVEYS"](http://www.asasrms.org/Proceedings/y2023/files/HB_JSM_2023.pdf)
