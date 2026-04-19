@@ -20,4 +20,11 @@ sections:
     design:
       view: article-grid
       columns: 2
+_build:
+  render: never
+  list: never
+cascade:
+  _build:
+    render: never
+    list: never
 ---

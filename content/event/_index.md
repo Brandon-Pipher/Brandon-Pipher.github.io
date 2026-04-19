@@ -10,4 +10,13 @@ view: card
 image:
   caption: ''
   filename: ''
+
+
+_build:
+  render: never
+  list: never
+cascade:
+  _build:
+    render: never
+    list: never
 ---
