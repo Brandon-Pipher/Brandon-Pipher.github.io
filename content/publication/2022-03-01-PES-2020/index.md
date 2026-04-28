@@ -74,10 +74,14 @@ draft: false
 
 Contributing statistican to selected [2020 Post-Enumeration Survey](https://www.census.gov/programs-surveys/decennial-census/about/coverage-measurement/pes.html) reports, including:
 
-– [Census Coverage Estimates for Housing Units in the United States](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/census-coverage-estimates-for-housing-units-in-the-united-states.pdf) (Aug. 2022)
+- [National Census Coverage Estimates for People in the United States by Demographic Characteristics](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/national-census-coverage-estimates-by-demographic-characteristics.pdf) (Mar. 2022)
 
-– [Census Coverage Estimates for Puerto Rico](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/census-coverage-estimates-for-people-in-the-united-states-by-state-and-census-operations.pdf) (Aug. 2022)
+- [Source and Accuracy of the 2020 Post-Enumeration Survey Person Estimates](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/2020-source-and-accuracy-pes-estimates.pdf) (Mar. 2022)
 
-– [Census Coverage Estimates for People in the United States by State and Census Operations](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/census-coverage-estimates-for-people-in-the-united-states-by-state-and-census-operations.pdf) (Jun. 2022)
+- [Census Coverage Estimates for People in the United States by State and Census Operations](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/census-coverage-estimates-for-people-in-the-united-states-by-state-and-census-operations.pdf) (Jun. 2022)
 
-– [National Census Coverage Estimates for People in the United States by Demographic Characteristics](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/national-census-coverage-estimates-by-demographic-characteristics.pdf) (Mar. 2022)
+- [Census Coverage Estimates for Housing Units in the United States](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/census-coverage-estimates-for-housing-units-in-the-united-states.pdf) (Aug. 2022)
+
+- [Census Coverage Estimates for Puerto Rico](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/census-coverage-estimates-for-people-in-the-united-states-by-state-and-census-operations.pdf) (Aug. 2022)
+
+- [Source and Accuracy of the 2020 Post-Enumeration Survey Housing Unit Estimates](https://www2.census.gov/programs-surveys/decennial/coverage-measurement/pes/2020-source-and-accuracy-pes-housing-unit-estimates.pdf) (Aug. 2022)
